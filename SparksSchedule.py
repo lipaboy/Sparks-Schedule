@@ -34,6 +34,13 @@ class SparksSchedule:
             4: 3,
             5: 1
         }
+        self.undesirableGhostDays = {
+            1: [1, 2],
+            2: [3, 5, 6],
+            3: [],
+            4: [1, 2, 3, 7],
+            5: []
+        }
 
     def __ghostTraversalGen(self):
         self.__setBase()
@@ -48,21 +55,31 @@ class SparksSchedule:
                 break
 
     def findFirstGhost(self):
+        differInTurnsCoef = 1.5
+        turnRepeatCoef = 10
+        undesirableDayCoef = 5
+
         minDebatov = 1e5
-        scheduleBest = SparksSchedule()
-        coefDifferenceInTurns = 1.5
+        bestCount = 2
+        scheduleBest = {minDebatov + i * 1.0: SparksSchedule() for i in range(bestCount)}
         iterationId = 0
         for _ in self.__ghostTraversalGen():
             iterationId += 1
             currDebatov = 0.0
 
+            """ Turn Count By Ghost """
             turnCountDict = [0 for i in self.ghostNames]
 
+            """ The Longest Turn Repeats """
             turnRepeats = 0
             ghostRepeat = -1
             maxTurnRepeat = 0
+
             for ghostId in self.ghostOneTime:
+                """ Turn Count By Ghost """
                 turnCountDict[ghostId - 1] += 1
+
+                """ The Longest Turn Repeats """
                 if ghostRepeat == ghostId:
                     turnRepeats = turnRepeats + 1
                 else:
@@ -70,12 +87,15 @@ class SparksSchedule:
                     turnRepeats = 1
                 ghostRepeat = ghostId
 
+            """ The Longest Turn Repeats """
             secondTurnRepeats = 0
             secondGhostRepeat = -1
             for p in self.ghostPair:
+                """ Turn Count By Ghost """
                 turnCountDict[p[0] - 1] += 1
                 turnCountDict[p[1] - 1] += 1
 
+                """ The Longest Turn Repeats """
                 if secondGhostRepeat == p[0] or secondGhostRepeat == p[1]:
                     secondTurnRepeats += 1
                 else:
@@ -90,22 +110,30 @@ class SparksSchedule:
                     turnRepeats = 1
                     ghostRepeat = p[0] if secondGhostRepeat != p[0] else p[1]
 
-            maxTurnRepeat = max(maxTurnRepeat, ghostRepeat, secondTurnRepeats)
-
+            """ Turn Count By Ghost """
             # смотрим разницу между желаемым количеством смен для каждого духа
             # и текущим рассматриваемым расписанием
             for ghostId, limit in self.ghostLimits.items():
-                currDebatov += coefDifferenceInTurns * abs(turnCountDict[ghostId - 1] - limit)
+                currDebatov += differInTurnsCoef * abs(turnCountDict[ghostId - 1] - limit)
 
+            """ The Longest Turn Repeats """
+            maxTurnRepeat = max(maxTurnRepeat, ghostRepeat, secondTurnRepeats)
             if maxTurnRepeat >= 3:
-                currDebatov += 10 + (maxTurnRepeat - 3) * 10
+                currDebatov += turnRepeatCoef + (maxTurnRepeat - 3) * turnRepeatCoef
 
             if currDebatov < minDebatov:
-                minDebatov = currDebatov
-                scheduleBest = copy.deepcopy(self)
+                scheduleBest.pop(max(scheduleBest.keys()))
+                while currDebatov in scheduleBest:
+                    currDebatov += 0.0001
+                scheduleBest[currDebatov] = copy.deepcopy(self)
+                minDebatov = float(max(scheduleBest.keys()))
+
         print(f"Количество итераций: {iterationId}")
-        print(f"Минимум дебатов: {minDebatov}")
-        scheduleBest.print()
+        print()
+        for s in scheduleBest.items():
+            print(f"Минимум дебатов: {s[0]}")
+            s[1].print()
+            print()
 
     def calcTraverseLen(self):
         self.__setBase()
