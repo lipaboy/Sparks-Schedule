@@ -57,12 +57,13 @@ class SparksSchedule:
     def findFirstGhost(self):
         differInTurnsCoef = 1.5
         turnRepeatCoef = 10
-        undesirableDayCoef = 5
+        undesirableDayCoef = 4
 
         minDebatov = 1e5
-        bestCount = 2
+        bestCount = 4
         scheduleBest = {minDebatov + i * 1.0: SparksSchedule() for i in range(bestCount)}
         iterationId = 0
+        week = range(1, 7+1)
         for _ in self.__ghostTraversalGen():
             iterationId += 1
             currDebatov = 0.0
@@ -75,7 +76,9 @@ class SparksSchedule:
             ghostRepeat = -1
             maxTurnRepeat = 0
 
-            for ghostId in self.ghostOneTime:
+            undesirableDaysCount = 0
+
+            for day, ghostId in zip(week, self.ghostOneTime):
                 """ Turn Count By Ghost """
                 turnCountDict[ghostId - 1] += 1
 
@@ -87,10 +90,13 @@ class SparksSchedule:
                     turnRepeats = 1
                 ghostRepeat = ghostId
 
+                if day in self.undesirableGhostDays[ghostId]:
+                    undesirableDaysCount += 1
+
             """ The Longest Turn Repeats """
             secondTurnRepeats = 0
             secondGhostRepeat = -1
-            for p in self.ghostPair:
+            for day, p in zip(week, self.ghostPair):
                 """ Turn Count By Ghost """
                 turnCountDict[p[0] - 1] += 1
                 turnCountDict[p[1] - 1] += 1
@@ -110,6 +116,11 @@ class SparksSchedule:
                     turnRepeats = 1
                     ghostRepeat = p[0] if secondGhostRepeat != p[0] else p[1]
 
+                if day in self.undesirableGhostDays[p[0]]:
+                    undesirableDaysCount += 1
+                if day in self.undesirableGhostDays[p[1]]:
+                    undesirableDaysCount += 1
+
             """ Turn Count By Ghost """
             # смотрим разницу между желаемым количеством смен для каждого духа
             # и текущим рассматриваемым расписанием
@@ -120,6 +131,8 @@ class SparksSchedule:
             maxTurnRepeat = max(maxTurnRepeat, ghostRepeat, secondTurnRepeats)
             if maxTurnRepeat >= 3:
                 currDebatov += turnRepeatCoef + (maxTurnRepeat - 3) * turnRepeatCoef
+
+            currDebatov += undesirableDaysCount * undesirableDayCoef
 
             if currDebatov < minDebatov:
                 scheduleBest.pop(max(scheduleBest.keys()))
@@ -151,7 +164,8 @@ class SparksSchedule:
         return traversalLen
 
     def nextGhostPair(self):
-        return nextPairSchedule(self.ghostPair, 5, 4)
+        return nextPairSchedule_v2(self.ghostPair, 5, 4)
+        # return nextPairSchedule(self.ghostPair, 5, 4)
 
     def nextGhostOneTime(self):
         return nextOneTimeScheduleOfGhostman(self.ghostOneTime, 5, 3)
