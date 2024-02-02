@@ -51,9 +51,9 @@ class SparksSchedule:
         minDebatov = 1e5
         scheduleBest = SparksSchedule()
         coefDifferenceInTurns = 1.5
-        count = 0
+        iterationId = 0
         for _ in self.__ghostTraversalGen():
-            count += 1
+            iterationId += 1
             currDebatov = 0.0
 
             turnCountDict = [0 for i in self.ghostNames]
@@ -70,16 +70,27 @@ class SparksSchedule:
                     turnRepeats = 1
                 ghostRepeat = ghostId
 
+            secondTurnRepeats = 0
+            secondGhostRepeat = -1
             for p in self.ghostPair:
                 turnCountDict[p[0] - 1] += 1
                 turnCountDict[p[1] - 1] += 1
-                # todo: нетотально верная проверка, много случаев не учитывается
+
+                if secondGhostRepeat == p[0] or secondGhostRepeat == p[1]:
+                    secondTurnRepeats += 1
+                else:
+                    maxTurnRepeat = max(maxTurnRepeat, secondTurnRepeats)
+                    secondTurnRepeats = 1
+                    secondGhostRepeat = p[0] if ghostRepeat != p[0] else p[1]
+
                 if ghostRepeat == p[0] or ghostRepeat == p[1]:
                     turnRepeats = turnRepeats + 1
                 else:
                     maxTurnRepeat = max(maxTurnRepeat, turnRepeats)
                     turnRepeats = 1
-                    ghostRepeat = p[0]
+                    ghostRepeat = p[0] if secondGhostRepeat != p[0] else p[1]
+
+            maxTurnRepeat = max(maxTurnRepeat, ghostRepeat, secondTurnRepeats)
 
             # смотрим разницу между желаемым количеством смен для каждого духа
             # и текущим рассматриваемым расписанием
@@ -89,18 +100,11 @@ class SparksSchedule:
             if maxTurnRepeat >= 3:
                 currDebatov += 10 + (maxTurnRepeat - 3) * 10
 
-            # долгий поиск предпочтений
-            # for idGhost in range(1, len(self.ghostNames) + 1):
-            #     turnCount = (ilen(filter(lambda x: x == idGhost, self.ghostOneTime))
-            #                  + ilen(filter(lambda x: x[0] == idGhost or x[1] == idGhost,
-            #                                self.ghostPair)))
-            #     currDebatov += coefDifferenceInTurns * abs(turnCount - self.ghostLimits[idGhost])
-
             if currDebatov < minDebatov:
                 minDebatov = currDebatov
                 scheduleBest = copy.deepcopy(self)
-        print(count)
-        print(minDebatov)
+        print(f"Количество итераций: {iterationId}")
+        print(f"Минимум дебатов: {minDebatov}")
         scheduleBest.print()
 
     def calcTraverseLen(self):
