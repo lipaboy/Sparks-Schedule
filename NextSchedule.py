@@ -51,29 +51,3 @@ def nextPairSchedule(ghostPairSchedule: list,
     return True
 
 
-def nextPairSchedule_v2(ghostPairSchedule: list,
-                     ghostCount: int,
-                     daysCount: int):
-    j = daysCount - 1
-    dayLimit = 1
-    while j >= 0 and ((j <= dayLimit and ghostPairSchedule[j] == (ghostCount, ghostCount - 1))
-                      or (j > dayLimit and ghostPairSchedule[j] == (ghostCount - 1, ghostCount))):
-        j -= 1
-
-    if j < 0:
-        return False
-
-    pair = ghostPairSchedule[j]
-    # проверка на четверг
-    if j <= dayLimit:
-        ghostPairSchedule[j] = (pair[0] + 1, 1) \
-            if ghostPairSchedule[j][1] == ghostCount \
-            else (pair[0], pair[1] + 1 if pair[0] != pair[1] + 1 else pair[0] + 1)
-    else:
-        ghostPairSchedule[j] = (pair[0] + 1, pair[0] + 2) \
-            if ghostPairSchedule[j][1] == ghostCount else (pair[0], pair[1] + 1)
-
-    for i in range(j + 1, daysCount):
-        ghostPairSchedule[i] = (1, 2)
-
-    return True
