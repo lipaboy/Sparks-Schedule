@@ -1,8 +1,8 @@
-from SparksSchedule import SparksSchedule
+from SparksScheduleSearch import SparksScheduleSearch
 import time
 
 if __name__ == "__main__":
-    sparks = SparksSchedule()
+    sparks = SparksScheduleSearch()
     # sparks.shuffle()
     # sparks.print()
     # print(sparks.calcTraverseLen())
