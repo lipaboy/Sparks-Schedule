@@ -65,8 +65,28 @@ def write_table_xlsx(filename, newFilename, sheetName):
     # del newWb["Sheet"]
     # newSheet = newWb.create_sheet("Test")
     # print(newWb.sheetnames)
-    for numRow in range(1, sheet.max_row + 1):
+    numRow = 1
+    for numColumn in range(1, sheet.max_column + 1):
+        if numColumn == 1:
+            newSheet.column_dimensions[openpyxl.utils.get_column_letter(numColumn)].width = 10
+        elif numColumn == 2:
+            newSheet.column_dimensions[openpyxl.utils.get_column_letter(numColumn)].width = 7
+        else:
+            newSheet.column_dimensions[openpyxl.utils.get_column_letter(numColumn)].width = 20
+
+        newSheet.cell(row=numRow, column=numColumn).font = openpyxl.styles.Font(bold=True)
+        newSheet.cell(row=numRow, column=numColumn).alignment = openpyxl.styles.Alignment(horizontal='center')
+        newSheet.cell(row=numRow, column=numColumn).value = sheet.cell(row=numRow, column=numColumn).value
+    for numRow in range(2, sheet.max_row + 1):
         for numColumn in range(1, sheet.max_column + 1):
+            newSheet.cell(row=numRow, column=numColumn).font = openpyxl.styles.Font(italic=True)
+            if numColumn == 1:
+                bufferAlignment = openpyxl.styles.Alignment(horizontal='right')
+            elif numColumn == 2:
+                bufferAlignment = openpyxl.styles.Alignment(horizontal='center')
+            else:
+                bufferAlignment = openpyxl.styles.Alignment(horizontal='left')
+            newSheet.cell(row=numRow, column=numColumn).alignment = bufferAlignment
             newSheet.cell(row=numRow, column=numColumn).value = sheet.cell(row=numRow, column=numColumn).value
 
     newWb.save(newFilename)
