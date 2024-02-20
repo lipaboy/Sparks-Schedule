@@ -2,8 +2,7 @@ import random
 import copy
 
 from Schedule import Schedule
-from EmployeeFavor import EmployeeFavor, ExcelType
-from NextSchedule import *
+from EmployeeFavor import EmployeeFavor, ScheduleExtractionExcelType
 
 
 class SparksScheduleSearch:
@@ -105,7 +104,7 @@ class SparksScheduleSearch:
 
         return currDebatov
 
-    def findFirstGhost(self) -> list[ExcelType]:
+    def findFirstGhost(self) -> list[ScheduleExtractionExcelType]:
         minDebatov = 1e5
         bestCount = 12
         schedulesBest = {minDebatov + i * 1.0: Schedule() for i in range(bestCount)}
@@ -139,9 +138,9 @@ class SparksScheduleSearch:
             self.schedule.ghostPair = [(1, 2), (1, 2), (1, 2), (1, 2)]
             while True:
                 yield
-                if not self.nextGhostPair():
+                if not self.schedule.nextGhostPair():
                     break
-            if not self.nextGhostOneTime():
+            if not self.schedule.nextGhostOneTime():
                 break
 
     def calcTraverseLen(self):
@@ -151,27 +150,22 @@ class SparksScheduleSearch:
             traversalLen += 1
         return traversalLen
 
-    def nextGhostPair(self):
-        # return self.schedule.nextPairSchedule_v2(5, 4, max(self.favor.partTimeDays.keys()))
-        return nextPairSchedule(self.schedule.ghostPair, 5, 4)
-
-    def nextGhostOneTime(self):
-        return nextOneTimeScheduleOfGhostman(self.schedule.ghostOneTime, 5, 3)
-
     def shuffle(self):
         self.__setBase()
 
         n = random.randint(1, 35)
         for i in range(1, n):
-            nextScheduleOfElderman(self.schedule.vovan, 4, 7)
+            # self.schedule.nextScheduleOfElderman()
+            pass
 
         n = random.randint(1, 125)
         for i in range(1, n):
-            nextOneTimeScheduleOfGhostman(self.schedule.ghostOneTime, 5, 3)
+            self.schedule.nextGhostOneTime()
 
         n = random.randint(1, int(1e4))
         for i in range(1, n):
-            nextPairSchedule(self.schedule.ghostPair, 5, 4)
+            # self.schedule.nextGhostPair()
+            self.schedule.nextPairSchedule_v2()
 
     def __setBase(self):
         # 35 вариантов

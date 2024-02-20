@@ -4,11 +4,13 @@ from typing import TypeAlias
 """ Номер дня (1 - пн, 2 - вт, .. 7 - вск) """
 DayType: TypeAlias = int
 """ Длина рабочей смены """
-TurnLength: TypeAlias = float
-""" Место, где работает сотрудник (Hall, Truck) """
+ShiftLength: TypeAlias = float
+""" Место, где работает сотрудник (Hall - в зале, Truck - тачка) """
 PlaceToWork: TypeAlias = str
-""" Формат выгрузки в эксель модуль """
-ExcelType: TypeAlias = dict[str, list[tuple[DayType, TurnLength, PlaceToWork]]]
+""" Имя сотрудника """
+EmployeeName: TypeAlias = str
+""" Формат выгрузки в эксель модуль. Один ExcelType - это одно расписание """
+ScheduleExtractionExcelType: TypeAlias = dict[EmployeeName, list[tuple[DayType, ShiftLength, PlaceToWork]]]
 
 
 class EmployeeFavor:
@@ -51,8 +53,8 @@ class EmployeeFavor:
         self.turnDayLen = [self.partTimeDays.get(i)
                            if i in self.partTimeDays else 1.0 for i in self.week]
 
-    def toExcel(self, schedule: Schedule) -> ExcelType:
-        excelDict = ExcelType()
+    def toExcel(self, schedule: Schedule) -> ScheduleExtractionExcelType:
+        excelDict = ScheduleExtractionExcelType()
 
         for ghostId, ghostName in self.ghostNames.items():
             turnList = []

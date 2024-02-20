@@ -1,3 +1,6 @@
+from NextSchedule import *
+
+
 class Schedule:
     def __init__(self):
         self.vovan = []
@@ -31,3 +34,10 @@ class Schedule:
             self.ghostPair[i] = (1, 2)
 
         return True
+
+    def nextGhostPair(self):
+        # return self.nextPairSchedule_v2(5, 4, max(self.favor.partTimeDays.keys()))
+        return nextPairSchedule(self.ghostPair, 5, 4)
+
+    def nextGhostOneTime(self):
+        return nextOneTimeScheduleOfGhostman(self.ghostOneTime, 5, 3)

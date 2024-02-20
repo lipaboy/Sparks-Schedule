@@ -1,17 +1,20 @@
-def gen(n):
-    for i in range(n):
-        yield i*i
 
 
-if __name__ == '__main__':
-    g = gen(5)
-    # for i in g:
-    #     print(i)
+d = dict()
+d[2] = 'kek'
 
-    # lst = list(g)
-    # print(lst)
+dd = dict()
+dd['kek'] = 2
+dd['lol'] = 3
+dd['kek'] = 5
 
-    print(g.__next__())
-    print(g.__next__())
-    print(g.__next__())
-    print(g.__next__())
+lst = ['l', 'st', 'kek']
+for i in lst:
+    if i in dd:
+        print('нашли')
+
+
+
+# c = (1, 2, 'str', 1.5)
+# for i in c:
+#     print(i)
