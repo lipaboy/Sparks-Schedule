@@ -1,18 +1,19 @@
-from SparksSchedule import SparksSchedule
+from SparksScheduleSearch import SparksScheduleSearch
 import time
 
 if __name__ == "__main__":
-    sparks = SparksSchedule()
-    # sparks.shuffle()
-    # sparks.print()
-    # print(sparks.calcTraverseLen())
+    sparks = SparksScheduleSearch()
 
     find = True
     # find = False
 
     _startMeasure = time.time()
     if find:
-        sparks.findFirstGhost()
+        # sparks.debug = True
+        results = sparks.findFirstGhost()
+        for res in results:
+            print(res)
+            print()
 
         # sparks.debug = True
         # print()
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     else:
         count = 1
         while sparks.nextGhostPair():
-            print(sparks.ghostPair)
+            print(sparks.schedule.ghostPair)
             count += 1
         print(count)
 
