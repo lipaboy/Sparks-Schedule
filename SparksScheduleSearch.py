@@ -7,8 +7,8 @@ from EmployeeFavor import EmployeeFavor, ScheduleExtractionExcelType
 
 class SparksScheduleSearch:
     def __init__(self):
-        self.schedule = Schedule()
         self.favor = EmployeeFavor()
+        self.schedule = Schedule(self.favor.pairDayStart())
         self.__setBase()
 
         self.turnRepeatCoef = 10
@@ -22,6 +22,12 @@ class SparksScheduleSearch:
                            if i in self.favor.partTimeDays else 1.0 for i in self.week]
 
         self.debug = False
+
+    def loadPreviousWeekSchedule(self,
+                                 excelSchedule: ScheduleExtractionExcelType):
+        prevSchedule = self.favor.fromExcel(excelSchedule)
+        if self.debug:
+            self.favor.print(prevSchedule)
 
     def calcDebatov(self):
         currDebatov = 0.0
@@ -107,10 +113,15 @@ class SparksScheduleSearch:
     def findFirstGhost(self) -> list[ScheduleExtractionExcelType]:
         minDebatov = 1e5
         bestCount = 12
-        schedulesBest = {minDebatov + i * 1.0: Schedule() for i in range(bestCount)}
+        schedulesBest = {minDebatov + i * 1.0: Schedule(self.favor.pairDayStart())
+                         for i in range(bestCount)}
         iterationId = 0
         for _ in self.__ghostTraversalGen():
             iterationId += 1
+
+            # прогресс бар
+            if iterationId % int(1e5) == 0:
+                print('.', end='')
 
             currDebatov = self.calcDebatov()
 
@@ -121,11 +132,14 @@ class SparksScheduleSearch:
                 schedulesBest[currDebatov] = copy.deepcopy(self.schedule)
                 minDebatov = float(max(schedulesBest.keys()))
 
-        schedulesBest = dict(sorted(schedulesBest.items(), reverse=True))
+        print()
+
+        schedulesBest = dict(sorted(schedulesBest.items()))
         if self.debug:
+            schedulesForPrint = dict(sorted(schedulesBest.items(), reverse=True))
             print(f"Количество итераций: {iterationId}")
             print()
-            for debatov, s in schedulesBest.items():
+            for debatov, s in schedulesForPrint.items():
                 print(f"Минимум дебатов: {debatov}")
                 self.favor.print(s)
                 print()

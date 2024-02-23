@@ -9,11 +9,13 @@ if __name__ == "__main__":
 
     _startMeasure = time.time()
     if find:
-        # sparks.debug = True
+        sparks.debug = True
         results = sparks.findFirstGhost()
-        for res in results:
-            print(res)
-            print()
+        # for res in results:
+        #     print(res)
+        #     print()
+
+        sparks.loadPreviousWeekSchedule(results[0])
 
         # sparks.debug = True
         # print()

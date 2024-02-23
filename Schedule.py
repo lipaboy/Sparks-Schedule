@@ -2,10 +2,18 @@ from NextSchedule import *
 
 
 class Schedule:
-    def __init__(self):
-        self.vovan = []
-        self.ghostOneTime = []
-        self.ghostPair = []
+    def __init__(self, pairDayStart: int):
+        self.vovan = [0 for _ in range(7)]
+        self.ghostOneTime = [0 for _ in range(1, pairDayStart)]
+        self.ghostPair = [(0, 0) for _ in range(pairDayStart, 7 + 1)]
+
+    def isValid(self):
+        return (
+                # 0 not in self.vovan
+                # and
+                0 not in self.ghostOneTime
+                and
+                not any(0 in p for p in self.ghostPair))
 
     def nextPairSchedule_v2(self,
                             ghostCount: int,

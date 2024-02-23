@@ -1,26 +1,15 @@
 from Schedule import Schedule
-from typing import TypeAlias
-
-""" Номер дня (1 - пн, 2 - вт, .. 7 - вск) """
-DayType: TypeAlias = int
-""" Длина рабочей смены """
-ShiftLength: TypeAlias = float
-""" Место, где работает сотрудник (Hall - в зале, Truck - тачка) """
-PlaceToWork: TypeAlias = str
-""" Имя сотрудника """
-EmployeeName: TypeAlias = str
-""" Формат выгрузки в эксель модуль. Один ExcelType - это одно расписание """
-ScheduleExtractionExcelType: TypeAlias = dict[EmployeeName, list[tuple[DayType, ShiftLength, PlaceToWork]]]
+from ScheduleExtractionExcelType import ScheduleExtractionExcelType, EmployeeCard
 
 
 class EmployeeFavor:
     def __init__(self):
         self.ghostNames = {
-            1: 'Даша',
-            2: 'Маша',
-            3: 'Саша',
-            4: 'Лада',
-            5: 'Артур'
+            'Даша': 1,
+            'Маша': 2,
+            'Саша': 3,
+            'Лада': 4,
+            'Артур': 5
         }
         self.eldersNames = {
             1: 'Вован',
@@ -56,8 +45,9 @@ class EmployeeFavor:
     def toExcel(self, schedule: Schedule) -> ScheduleExtractionExcelType:
         excelDict = ScheduleExtractionExcelType()
 
-        for ghostId, ghostName in self.ghostNames.items():
+        for ghostName, ghostId in self.ghostNames.items():
             turnList = []
+            employeeCard = EmployeeCard(ghostName, False)
 
             for i, day in zip(schedule.ghostOneTime, self.oneTimeWeek):
                 if i == ghostId:
@@ -67,9 +57,40 @@ class EmployeeFavor:
                 if ghostId == p[0] or ghostId == p[1]:
                     turnList.append((day, self.turnDayLen[day - 1] if ghostId == p[0] else 1.0, 'Hall'))
 
-            excelDict[ghostName] = turnList
+            excelDict[employeeCard] = turnList
 
         return excelDict
+
+    def pairDayStart(self):
+        return self.pairWeek[0]
+
+    def fromExcel(self, excelSchedule: ScheduleExtractionExcelType) -> Schedule:
+        schedule = Schedule(self.pairDayStart())
+
+        for ghostCard, ghostSchedule in excelSchedule.items():
+            # skip eldermen
+            if ghostCard.IsElder is True:
+                continue
+            ghostId = self.ghostNames[ghostCard.Name]
+            for day, shiftLen, _ in ghostSchedule:
+                if day < self.pairDayStart():
+                    schedule.ghostOneTime[day - 1] = ghostId
+                elif day <= 7:
+                    pair = schedule.ghostPair[day - self.pairDayStart()]
+                    if shiftLen < 1.0 - 1e5 or pair[0] == 0:
+                        pair = (ghostId, pair[1])
+                    elif pair[1] == 0:
+                        pair = (pair[0], ghostId)
+                    else:
+                        print("Error: schedule is not parsed correctly. "
+                              "Repeated schedule in one day is found.")
+
+                    schedule.ghostPair[day - self.pairDayStart()] = pair
+
+        if not schedule.isValid():
+            print("Error: schedule is not parsed correctly.")
+
+        return schedule
 
     def print(self, schedule: Schedule):
         week = range(1, 7 + 1)
@@ -94,7 +115,7 @@ class EmployeeFavor:
         # print('---------------------'.rjust((nameMaxLen + 1 + 7 * 4) // 5 * 4))
 
         oneTimeWeek = [1, 2, 3]
-        for [ghostId, name] in self.ghostNames.items():
+        for [name, ghostId] in self.ghostNames.items():
             print(name.rjust(nameMaxLen) + ':', end='')
             for i in week:
                 if i in oneTimeWeek:
