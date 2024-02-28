@@ -1,5 +1,6 @@
 import random
 import copy
+import itertools
 
 from Schedule import Schedule
 from EmployeeFavor import EmployeeFavor, ScheduleExtractionExcelType
@@ -18,16 +19,52 @@ class SparksScheduleSearch:
         self.week = range(1, 7+1)
         self.oneTimeWeek = range(1, len(self.schedule.ghostOneTime) + 1)
         self.pairWeek = range(len(self.schedule.ghostOneTime) + 1, 7+1)
-        self.turnDayLen = [self.favor.partTimeDays.get(i)
+        self.shiftLenByDay = [self.favor.partTimeDays.get(i)
                            if i in self.favor.partTimeDays else 1.0 for i in self.week]
 
         self.debug = False
+
+    def getShiftLenBy(self,
+                      day: int,
+                      isFirstInShift: bool) -> float:
+        return self.shiftLenByDay[day - 1] if isFirstInShift else 1.0
 
     def loadPreviousWeekSchedule(self,
                                  excelSchedule: ScheduleExtractionExcelType):
         prevSchedule = self.favor.fromExcel(excelSchedule)
         if self.debug:
             self.favor.print(prevSchedule)
+
+        """ The Longest Turn Repeats """
+        shiftRepeats = self.shiftLenByDay[-1]
+        ghostIdRepeat = prevSchedule.ghostPair[-1][0]
+        secondShiftRepeats = 1.0
+        secondGhostIdRepeat = prevSchedule.ghostPair[-1][1]
+        readyFirst = False
+        readySecond = False
+        for day, p in zip(itertools.islice(reversed(self.pairWeek), 1, None),
+                          itertools.islice(reversed(prevSchedule.ghostPair), 1, None)):
+
+            """ The Longest Turn Repeats """
+            if (not readyFirst and
+                    (ghostIdRepeat == p[0] or ghostIdRepeat == p[1])):
+                shiftRepeats += self.getShiftLenBy(day, ghostIdRepeat == p[0])
+            else:
+                readyFirst = True
+
+            if (not readySecond and
+                    (secondGhostIdRepeat == p[0] or secondGhostIdRepeat == p[1])):
+                secondShiftRepeats += self.getShiftLenBy(day, secondGhostIdRepeat == p[0])
+            else:
+                readySecond = True
+
+            if readySecond and readyFirst:
+                break
+
+        d = dict()
+        d[ghostIdRepeat] = shiftRepeats
+        d[secondGhostIdRepeat] = secondShiftRepeats
+        print(d)
 
     def calcDebatov(self):
         currDebatov = 0.0
@@ -36,9 +73,9 @@ class SparksScheduleSearch:
         turnCountDict = [0.0 for _ in self.favor.ghostNames]
 
         """ The Longest Turn Repeats """
-        turnRepeats = 0.0
+        shiftRepeats = 0.0       # вещественный, потому что длина смены может быть не целой величиной
         ghostIdRepeat = -1
-        maxTurnRepeat = 0.0
+        maxShiftRepeat = 0.0
 
         """ Undesirable Days """
         undesirableDaysCount = 0
@@ -50,10 +87,10 @@ class SparksScheduleSearch:
 
             """ The Longest Turn Repeats """
             if ghostIdRepeat == ghostId:
-                turnRepeats = turnRepeats + 1
+                shiftRepeats = shiftRepeats + 1
             else:
-                maxTurnRepeat = max(maxTurnRepeat, turnRepeats)
-                turnRepeats = 1
+                maxShiftRepeat = max(maxShiftRepeat, shiftRepeats)
+                shiftRepeats = 1
             ghostIdRepeat = ghostId
 
             """ Undesirable Days """
@@ -61,38 +98,38 @@ class SparksScheduleSearch:
                 undesirableDaysCount += 1
 
         """ The Longest Turn Repeats """
-        secondTurnRepeats = 0.0
+        secondShiftRepeats = 0.0
         secondGhostIdRepeat = -1
 
         # чт*, пт*, сб, вс
         for day, p in zip(self.pairWeek, self.schedule.ghostPair):
-            currDayLen = self.turnDayLen[day - 1]
+            # currDayLen = self.shiftLenByDay[day - 1]
             """ Turn Count By Ghost """
-            turnCountDict[p[0] - 1] += currDayLen
-            turnCountDict[p[1] - 1] += 1
+            turnCountDict[p[0] - 1] += self.getShiftLenBy(day, True)
+            turnCountDict[p[1] - 1] += self.getShiftLenBy(day, False)
 
             """ The Longest Turn Repeats """
             # noinspection DuplicatedCode
             if secondGhostIdRepeat == p[0] or secondGhostIdRepeat == p[1]:
-                secondTurnRepeats += currDayLen if secondGhostIdRepeat == p[0] else 1
+                secondShiftRepeats += self.getShiftLenBy(day, secondGhostIdRepeat == p[0])
             else:
-                maxTurnRepeat = max(maxTurnRepeat, secondTurnRepeats)
-                secondGhostIdRepeat, secondTurnRepeats = \
-                    (p[0], currDayLen) if ghostIdRepeat != p[0] else (p[1], 1)
+                maxShiftRepeat = max(maxShiftRepeat, secondShiftRepeats)
+                secondGhostIdRepeat = p[0] if ghostIdRepeat != p[0] else p[1]
+                secondShiftRepeats = self.getShiftLenBy(day, ghostIdRepeat != p[0])
 
             # noinspection DuplicatedCode
             if ghostIdRepeat == p[0] or ghostIdRepeat == p[1]:
-                turnRepeats += currDayLen if ghostIdRepeat == p[0] else 1
+                shiftRepeats += self.getShiftLenBy(day, ghostIdRepeat == p[0])
             else:
-                maxTurnRepeat = max(maxTurnRepeat, turnRepeats)
-                ghostIdRepeat, turnRepeats = \
-                    (p[0], currDayLen) if secondGhostIdRepeat != p[0] else (p[1], 1)
+                maxShiftRepeat = max(maxShiftRepeat, shiftRepeats)
+                ghostIdRepeat = p[0] if secondGhostIdRepeat != p[0] else p[1]
+                shiftRepeats = self.getShiftLenBy(day, secondGhostIdRepeat != p[0])
 
             """ Undesirable Days """
             if day in self.favor.undesirableGhostDays[p[0]]:
-                undesirableDaysCount += currDayLen
+                undesirableDaysCount += self.getShiftLenBy(day, True)
             if day in self.favor.undesirableGhostDays[p[1]]:
-                undesirableDaysCount += 1
+                undesirableDaysCount += self.getShiftLenBy(day, False)
 
         """ Turn Count By Ghost """
         # смотрим разницу между желаемым количеством смен для каждого духа
@@ -101,9 +138,9 @@ class SparksScheduleSearch:
             currDebatov += self.differInTurnsCoef * abs(turnCountDict[ghostId - 1] - limit)
 
         """ The Longest Turn Repeats """
-        maxTurnRepeat = max(maxTurnRepeat, turnRepeats, secondTurnRepeats)
-        if maxTurnRepeat >= 3.0:
-            currDebatov += self.turnRepeatCoef + (maxTurnRepeat - 3) * self.turnRepeatCoef
+        maxShiftRepeat = max(maxShiftRepeat, shiftRepeats, secondShiftRepeats)
+        if maxShiftRepeat >= 3.0:
+            currDebatov += self.turnRepeatCoef + (maxShiftRepeat - 3) * self.turnRepeatCoef
 
         """ Undesirable Days """
         currDebatov += undesirableDaysCount * self.undesirableDayCoef
@@ -139,7 +176,10 @@ class SparksScheduleSearch:
             schedulesForPrint = dict(sorted(schedulesBest.items(), reverse=True))
             print(f"Количество итераций: {iterationId}")
             print()
+            i = len(schedulesForPrint) - 1
             for debatov, s in schedulesForPrint.items():
+                print(f"id: {i}")
+                i -= 1
                 print(f"Минимум дебатов: {debatov}")
                 self.favor.print(s)
                 print()
@@ -176,10 +216,10 @@ class SparksScheduleSearch:
         for i in range(1, n):
             self.schedule.nextGhostOneTime()
 
-        n = random.randint(1, int(1e4))
-        for i in range(1, n):
+        # n = random.randint(1, int(1e4))
+        # for i in range(1, n):
             # self.schedule.nextGhostPair()
-            self.schedule.nextPairSchedule_v2()
+            # self.schedule.nextPairSchedule_v2()
 
     def __setBase(self):
         # 35 вариантов
