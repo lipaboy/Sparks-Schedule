@@ -8,6 +8,7 @@ if __name__ == "__main__":
 
     sparks.debug = True
     results = sparks.findFirstGhost()
+    # sparks.
     # for res in results:
     #     print(res)
     #     print()
