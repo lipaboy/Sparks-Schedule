@@ -7,7 +7,7 @@ if __name__ == "__main__":
     _startMeasure = time.time()
 
     sparks.debug = True
-    results = sparks.findFirstGhost()
+    results = sparks.search()
     # for res in results:
     #     print(res)
     #     print()

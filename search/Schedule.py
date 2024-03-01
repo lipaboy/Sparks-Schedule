@@ -7,6 +7,38 @@ class Schedule:
         self.ghostOneTime = [0 for _ in range(1, pairDayStart)]
         self.ghostPair = [(0, 0) for _ in range(pairDayStart, 7 + 1)]
 
+    def ghostTraversalGen(self):
+        self.__setBase()
+        while True:
+            self.ghostPair = [(1, 2), (1, 2), (1, 2), (1, 2)]
+            while True:
+                yield
+                if not self.nextGhostPair():
+                    break
+            if not self.nextGhostOneTime():
+                break
+
+    def calcTraverseLen(self):
+        self.__setBase()
+        traversalLen = 0
+        while self.ghostTraversalGen():
+            traversalLen += 1
+        return traversalLen
+
+    def __setBase(self):
+        # 35 вариантов
+        self.vovan = [1, 2, 3, 4]
+        # lubaSchedule === [5, 6, 7] соответственно
+
+        # пн, вт, ср (125 variants)
+        # хранит список духов по порядку дней когда у кого смена (Даша пн, Даша вт, Даша ср)
+        self.ghostOneTime = [1, 1, 1]
+
+        # чт, пт, сб, вс (10 000 variants - без С2, 20 000 - 1хС2, 40 000 - 2хС2 и т.д.)
+        # хранит список пар духов по порядку дней у кого смена (Даша, Маша чт), (Даша, Маша пт)...
+        # (1, 2) === (2, 1) - верно, когда нет дней с C2 или С18
+        self.ghostPair = [(1, 2), (1, 2), (1, 2), (1, 2)]
+
     def isValid(self):
         return (
                 # 0 not in self.vovan
