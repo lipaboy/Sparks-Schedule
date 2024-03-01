@@ -12,6 +12,6 @@ if __name__ == "__main__":
     #     print(res)
     #     print()
 
-    sparks.loadPreviousWeekSchedule(results[8])
+    sparks.loadPreviousWeekSchedule(results[0])
 
     print(f"Время работы: {time.time() - _startMeasure:.2f}s")
