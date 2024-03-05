@@ -47,10 +47,10 @@ class Schedule:
                 and
                 not any(0 in p for p in self.ghostPair))
 
-    def nextPairSchedule_v2(self,
-                            ghostCount: int,
-                            daysCount: int,
-                            dayLimit: int):
+    def __nextPairSchedule_v2(self,
+                              ghostCount: int,
+                              daysCount: int,
+                              dayLimit: int):
         j = daysCount - 1
         dayLimit -= 4
         while j >= 0 and ((j <= dayLimit and self.ghostPair[j] == (ghostCount, ghostCount - 1))
@@ -76,7 +76,7 @@ class Schedule:
         return True
 
     def nextGhostPair(self):
-        # return self.nextPairSchedule_v2(5, 4, max(self.favor.partTimeDays.keys()))
+        # return self.__nextPairSchedule_v2(5, 4, max(self.favor.partTimeDays.keys()))
         return nextPairSchedule(self.ghostPair, 5, 4)
 
     def nextGhostOneTime(self):
