@@ -36,11 +36,11 @@ class EmployeeFavor:
             5: []
         }
 
-        self.week = range(1, 7 + 1)
-        self.oneTimeWeek = range(1, 3 + 1)
-        self.pairWeek = range(3 + 1, 7 + 1)
-        self.turnDayLen = [self.partTimeDays.get(i)
-                           if i in self.partTimeDays else 1.0 for i in self.week]
+        self._week = range(1, 7 + 1)
+        self._oneTimeWeek = range(1, 3 + 1)
+        self._pairWeek = range(3 + 1, 7 + 1)
+        self._shiftDayLen = [self.partTimeDays.get(i)
+                           if i in self.partTimeDays else 1.0 for i in self._week]
 
     def toExcel(self, schedule: Schedule) -> ScheduleExtractionExcelType:
         excelDict = ScheduleExtractionExcelType()
@@ -49,20 +49,20 @@ class EmployeeFavor:
             turnList = []
             employeeCard = EmployeeCard(ghostName, False)
 
-            for i, day in zip(schedule.ghostOneTime, self.oneTimeWeek):
+            for i, day in zip(schedule.ghostOneTime, self._oneTimeWeek):
                 if i == ghostId:
                     turnList.append((day, 1.0, 'Hall'))
 
-            for p, day in zip(schedule.ghostPair, self.pairWeek):
+            for p, day in zip(schedule.ghostPair, self._pairWeek):
                 if ghostId == p[0] or ghostId == p[1]:
-                    turnList.append((day, self.turnDayLen[day - 1] if ghostId == p[0] else 1.0, 'Hall'))
+                    turnList.append((day, self._shiftDayLen[day - 1] if ghostId == p[0] else 1.0, 'Hall'))
 
             excelDict[employeeCard] = turnList
 
         return excelDict
 
     def pairDayStart(self):
-        return self.pairWeek[0]
+        return self._pairWeek[0]
 
     def fromExcel(self, excelSchedule: ScheduleExtractionExcelType) -> Schedule:
         schedule = Schedule(self.pairDayStart())
@@ -117,14 +117,18 @@ class EmployeeFavor:
         oneTimeWeek = [1, 2, 3]
         for [name, ghostId] in self.ghostNames.items():
             print(name.rjust(nameMaxLen) + ':', end='')
-            for i in week:
-                if i in oneTimeWeek:
+            for day in week:
+                if day in oneTimeWeek:
                     turnName = 'C'
-                    print((turnName if schedule.ghostOneTime[i - 1] == ghostId else 'x')
+                    if day in self.undesirableGhostDays[ghostId]:
+                        turnName = 'S'
+                    print((turnName if schedule.ghostOneTime[day - 1] == ghostId else 'x')
                           .rjust(4), end='')
                 else:
-                    turnName = 'C2' if (i in self.partTimeDays
-                                        and ghostId == schedule.ghostPair[i - 4][0]) else 'С'
-                    print((turnName if ghostId in schedule.ghostPair[i - 4] else 'x')
+                    turnName = 'C2' if (day in self.partTimeDays
+                                        and ghostId == schedule.ghostPair[day - 4][0]) else 'С'
+                    if day in self.undesirableGhostDays[ghostId]:
+                        turnName = turnName.replace('C', 'S')
+                    print((turnName if ghostId in schedule.ghostPair[day - 4] else 'x')
                           .rjust(4), end='')
             print()

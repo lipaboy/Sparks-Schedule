@@ -7,12 +7,13 @@ if __name__ == "__main__":
     _startMeasure = time.time()
 
     sparks.debug = True
-    results = sparks.findFirstGhost()
-    # sparks.
-    # for res in results:
-    #     print(res)
-    #     print()
+    results = sparks.search()
 
-    sparks.loadPreviousWeekSchedule(results[8])
+    # sparks.favor.print(sparks.favor.fromExcel(results[0]))
+    # sparks.loadPreviousWeekSchedule(results[0])
+
+    # sparks.debug = True
+    # results = sparks.search()
+    # sparks.favor.print(sparks.favor.fromExcel(results[0]))
 
     print(f"Время работы: {time.time() - _startMeasure:.2f}s")
