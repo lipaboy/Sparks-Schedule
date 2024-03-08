@@ -7,7 +7,7 @@ if __name__ == "__main__":
     _startMeasure = time.time()
 
     sparks.debug = True
-    results = sparks.search()
+    results = sparks.search(mode='fast')
 
     # sparks.favor.print(sparks.favor.fromExcel(results[0]))
     # sparks.loadPreviousWeekSchedule(results[0])

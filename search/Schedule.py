@@ -6,6 +6,60 @@ class Schedule:
         self.vovan = [0 for _ in range(7)]
         self.ghostOneTime = [0 for _ in range(1, pairDayStart)]
         self.ghostPair = [(0, 0) for _ in range(pairDayStart, 7 + 1)]
+        self.ghostPairAlgo = self.__nextGhostPair_vPart
+
+    def setMode(self, mode: str):
+        if mode == 'full':
+            self.ghostPairAlgo = self.__nextGhostPair_vFull
+        elif mode == 'part':
+            self.ghostPairAlgo = self.__nextGhostPair_vPart
+        elif mode == 'fast':
+            self.ghostPairAlgo = self.__nextGhostPair_vFast
+
+    def nextGhostPair(self):
+        return self.ghostPairAlgo()
+
+    def nextGhostOneTime(self):
+        return nextOneTimeScheduleOfGhostman(self.ghostOneTime, 5, 3)
+
+    def __nextGhostPair_vPart(self):
+        return nextPairSchedule(self.ghostPair, 5, 4)
+
+    def __nextGhostPair_vFast(self):
+        return nextPairSchedule_vFast(self.ghostPair, 5, 4)
+
+    def __nextGhostPair_vFull(self):
+        return self.__nextPairSchedule_v2(5, 4, 5)
+
+    def __nextPairSchedule_v2(self,
+                              ghostCount: int,
+                              daysCount: int,
+                              # Разграничение для дней с полусменами. Обычно они выпадают на пт, реже чт
+                              dayLimit: int):
+        """ Индекс дней здесь начинается с вск (daysCount - 1) и пока не дойдёт до 0"""
+        j = daysCount - 1
+        dayLimit -= 4
+        while j >= 0 and ((j <= dayLimit and self.ghostPair[j] == (ghostCount, ghostCount - 1))
+                          or (j > dayLimit and self.ghostPair[j] == (ghostCount - 1, ghostCount))):
+            j -= 1
+
+        if j < 0:
+            return False
+
+        pair = self.ghostPair[j]
+        # проверка на четверг
+        if j <= dayLimit:
+            self.ghostPair[j] = (pair[0] + 1, 1) \
+                if self.ghostPair[j][1] == ghostCount \
+                else (pair[0], pair[1] + 1 if pair[0] != pair[1] + 1 else pair[0] + 1)
+        else:
+            self.ghostPair[j] = (pair[0] + 1, pair[0] + 2) \
+                if self.ghostPair[j][1] == ghostCount else (pair[0], pair[1] + 1)
+
+        for i in range(j + 1, daysCount):
+            self.ghostPair[i] = (1, 2)
+
+        return True
 
     def ghostTraversalGen(self):
         self.__setBase()
@@ -41,43 +95,8 @@ class Schedule:
 
     def isValid(self):
         return (
-                # 0 not in self.vovan
-                # and
+            # 0 not in self.vovan
+            # and
                 0 not in self.ghostOneTime
                 and
                 not any(0 in p for p in self.ghostPair))
-
-    def __nextPairSchedule_v2(self,
-                              ghostCount: int,
-                              daysCount: int,
-                              dayLimit: int):
-        j = daysCount - 1
-        dayLimit -= 4
-        while j >= 0 and ((j <= dayLimit and self.ghostPair[j] == (ghostCount, ghostCount - 1))
-                          or (j > dayLimit and self.ghostPair[j] == (ghostCount - 1, ghostCount))):
-            j -= 1
-
-        if j < 0:
-            return False
-
-        pair = self.ghostPair[j]
-        # проверка на четверг
-        if j <= dayLimit:
-            self.ghostPair[j] = (pair[0] + 1, 1) \
-                if self.ghostPair[j][1] == ghostCount \
-                else (pair[0], pair[1] + 1 if pair[0] != pair[1] + 1 else pair[0] + 1)
-        else:
-            self.ghostPair[j] = (pair[0] + 1, pair[0] + 2) \
-                if self.ghostPair[j][1] == ghostCount else (pair[0], pair[1] + 1)
-
-        for i in range(j + 1, daysCount):
-            self.ghostPair[i] = (1, 2)
-
-        return True
-
-    def nextGhostPair(self):
-        # return self.__nextPairSchedule_v2(5, 4, max(self.favor.partTimeDays.keys()))
-        return nextPairSchedule(self.ghostPair, 5, 4)
-
-    def nextGhostOneTime(self):
-        return nextOneTimeScheduleOfGhostman(self.ghostOneTime, 5, 3)

@@ -8,12 +8,13 @@ from EmployeeFavor import EmployeeFavor, ScheduleExtractionExcelType
 class SparksScheduleSearch:
     """"""
     """ Главный метод для поиска оптимальных расписаний """
-    def search(self) -> list[ScheduleExtractionExcelType]:
+    def search(self, mode='part') -> list[ScheduleExtractionExcelType]:
         minDebatov = float(1e5)
         bestCount = 12
         schedulesBest = {minDebatov + i * 1.0: Schedule(self.favor.pairDayStart())
                          for i in range(bestCount)}
         iterationId = 0
+        self._schedule.setMode(mode)
         for _ in self._schedule.ghostTraversalGen():
             iterationId += 1
 

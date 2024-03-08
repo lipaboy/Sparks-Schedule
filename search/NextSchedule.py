@@ -12,6 +12,49 @@ def nextScheduleOfElderman(schedule: list,
     return False
 
 
+def nextPairSchedule(ghostPairSchedule: list,
+                     ghostCount: int,
+                     daysCount: int):
+    """ Индекс дней здесь начинается с вск (daysCount - 1) и пока не дойдёт до 0"""
+    j = daysCount - 1
+    while j >= 0 and ghostPairSchedule[j] == (ghostCount - 1, ghostCount):
+        j -= 1
+
+    if j < 0:
+        return False
+
+    pair = ghostPairSchedule[j]
+    ghostPairSchedule[j] = (pair[0] + 1, pair[0] + 2) \
+        if ghostPairSchedule[j][1] == ghostCount else (pair[0], pair[1] + 1)
+
+    for i in range(j + 1, daysCount):
+        ghostPairSchedule[i] = (1, 2)
+
+    return True
+
+
+def nextPairSchedule_vFast(ghostPairSchedule: list,
+                         ghostCount: int,
+                         daysCount: int):
+    """ Индекс дней здесь начинается с вск (daysCount - 1) и пока не дойдёт до 0"""
+    j = daysCount - 1
+    while j >= 0 and ghostPairSchedule[j] == (ghostCount - 1, ghostCount):
+        j -= 1
+
+    if j < 0:
+        return False
+
+    pair = ghostPairSchedule[j]
+    ghostPairSchedule[j] = (pair[0] + 1, pair[0] + 2) \
+        if ghostPairSchedule[j][1] == ghostCount else (pair[0], pair[1] + 1)
+
+    # не так быстро, как без этого цикла, но результаты дебатов впечатляют
+    # for i in range(max(j+1, daysCount-2), daysCount):
+    #     ghostPairSchedule[i] = (1, 2)
+
+    return True
+
+
 def nextOneTimeScheduleOfGhostman(schedule: list,
                                   ghostCount: int,  # количество духов
                                   daysCount: int  # количество дней для составления односменного расписания
@@ -29,25 +72,4 @@ def nextOneTimeScheduleOfGhostman(schedule: list,
     for k in range(j + 1, daysCount):
         schedule[k] = 1
     return True
-
-
-def nextPairSchedule(ghostPairSchedule: list,
-                     ghostCount: int,
-                     daysCount: int):
-    j = daysCount - 1
-    while j >= 0 and ghostPairSchedule[j] == (ghostCount - 1, ghostCount):
-        j -= 1
-
-    if j < 0:
-        return False
-
-    pair = ghostPairSchedule[j]
-    ghostPairSchedule[j] = (pair[0] + 1, pair[0] + 2) \
-        if ghostPairSchedule[j][1] == ghostCount else (pair[0], pair[1] + 1)
-
-    for i in range(j + 1, daysCount):
-        ghostPairSchedule[i] = (1, 2)
-
-    return True
-
 
