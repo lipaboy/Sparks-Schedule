@@ -12,8 +12,12 @@ class EmployeeFavor:
             'Артур': 5
         }
         self.eldersNames = {
-            1: 'Вован',
-            2: 'Люба'
+            'Вован': 1,
+            'Люба': 2
+        }
+
+        self.truckDistribution = {
+            name: 0 for name in (list(self.ghostNames.keys()) + list(self.eldersNames.keys()))
         }
 
         # дни, в которых есть нецелые смены
@@ -21,6 +25,7 @@ class EmployeeFavor:
             4: 0.5,
             5: 0.5
         }
+
         self.ghostLimits = {
             1: 3.5,
             2: 3.5,
@@ -36,11 +41,22 @@ class EmployeeFavor:
             5: []
         }
 
+        self.elderLimits = {
+            1: 4,
+            2: 3,
+        }
+        self.undesirableElderDays = {
+            1: [1, 4],
+            2: [7],
+        }
+
         self._week = range(1, 7 + 1)
         self._oneTimeWeek = range(1, 3 + 1)
         self._pairWeek = range(3 + 1, 7 + 1)
         self._shiftDayLen = [self.partTimeDays.get(i)
                            if i in self.partTimeDays else 1.0 for i in self._week]
+
+        self._nameMaxLen = 6
 
     def toExcel(self, schedule: Schedule) -> ScheduleExtractionExcelType:
         excelDict = ScheduleExtractionExcelType()
@@ -92,31 +108,35 @@ class EmployeeFavor:
 
         return schedule
 
-    def print(self, schedule: Schedule):
-        week = range(1, 7 + 1)
-        nameMaxLen = 6
-        print(''.rjust(nameMaxLen + 1), end='')
+    def __printWeek(self):
+        print(''.rjust(self._nameMaxLen + 1), end='')
         for day in ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']:
             print(day.rjust(4), end='')
         print()
 
-        # todo: don't forget it
-        # print(self.eldersNames[1].rjust(nameMaxLen) + ':', end='')
-        # for i in week:
-        #     turnName = 'C'
-        #     print((turnName if i in self.schedule.vovan else 'x').rjust(4), end='')
-        # print()
-        # print(self.eldersNames[2].rjust(nameMaxLen) + ':', end='')
-        # for i in week:
-        #     turnName = 'C'
-        #     print((turnName if i not in self.schedule.vovan else 'x').rjust(4), end='')
-        # print()
-        #
-        # print('---------------------'.rjust((nameMaxLen + 1 + 7 * 4) // 5 * 4))
+    def printElder(self, schedule: Schedule):
+        self.__printWeek()
+        elders = schedule.getElders()
 
-        oneTimeWeek = [1, 2, 3]
+        for name, elderId in self.eldersNames.items():
+            print(name.rjust(self._nameMaxLen) + ':', end='')
+            for day in self._week:
+                turnName = 'C'
+                if day in self.undesirableElderDays[elderId]:
+                    turnName = 'S'
+                print((turnName if day in elders[elderId] else 'x').rjust(4), end='')
+            print()
+
+    def print(self, schedule: Schedule):
+        week = range(1, 7 + 1)
+
+        self.printElder(schedule)
+
+        print('---------------------'.rjust((self._nameMaxLen + 1 + 7 * 4) // 5 * 4))
+
+        oneTimeWeek = [i for i in range(1, self.pairDayStart())]
         for [name, ghostId] in self.ghostNames.items():
-            print(name.rjust(nameMaxLen) + ':', end='')
+            print(name.rjust(self._nameMaxLen) + ':', end='')
             for day in week:
                 if day in oneTimeWeek:
                     turnName = 'C'

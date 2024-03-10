@@ -8,6 +8,12 @@ class Schedule:
         self.ghostPair = [(0, 0) for _ in range(pairDayStart, 7 + 1)]
         self.ghostPairAlgo = self.__nextGhostPair_vPart
 
+    def getElders(self) -> dict[int, list[int]]:
+        return {
+            1: self.vovan,
+            2: self.calcLubaSchedule()
+        }
+
     def setMode(self, mode: str):
         if mode == 'full':
             self.ghostPairAlgo = self.__nextGhostPair_vFull
@@ -15,6 +21,43 @@ class Schedule:
             self.ghostPairAlgo = self.__nextGhostPair_vPart
         elif mode == 'fast':
             self.ghostPairAlgo = self.__nextGhostPair_vFast
+
+    def isValid(self):
+        return (
+            # todo: раскомментить когда придёт время
+            # 0 not in self.vovan
+            # and
+                0 not in self.ghostOneTime
+                and
+                not any(0 in p for p in self.ghostPair))
+
+    def ghostTraversalGen(self):
+        self.__setBase()
+        while True:
+            self.ghostPair = [(1, 2), (1, 2), (1, 2), (1, 2)]
+            while True:
+                yield
+                if not self.nextGhostPair():
+                    break
+            if not self.nextGhostOneTime():
+                break
+
+    def elderTraversalGen(self):
+        self.__setBase()
+        while True:
+            yield
+            if not self.nextElderman():
+                break
+
+    def calcLubaSchedule(self):
+        luba = []
+        for day in range(1, 8):
+            if day not in self.vovan:
+                luba.append(day)
+        return luba
+
+    def nextElderman(self):
+        return nextScheduleOfElderman(self.vovan, 4, 7)
 
     def nextGhostPair(self):
         return self.ghostPairAlgo()
@@ -61,18 +104,7 @@ class Schedule:
 
         return True
 
-    def ghostTraversalGen(self):
-        self.__setBase()
-        while True:
-            self.ghostPair = [(1, 2), (1, 2), (1, 2), (1, 2)]
-            while True:
-                yield
-                if not self.nextGhostPair():
-                    break
-            if not self.nextGhostOneTime():
-                break
-
-    def calcTraverseLen(self):
+    def calcGhostTraverseLen(self):
         self.__setBase()
         traversalLen = 0
         while self.ghostTraversalGen():
@@ -92,11 +124,3 @@ class Schedule:
         # хранит список пар духов по порядку дней у кого смена (Даша, Маша чт), (Даша, Маша пт)...
         # (1, 2) === (2, 1) - верно, когда нет дней с C2 или С18
         self.ghostPair = [(1, 2), (1, 2), (1, 2), (1, 2)]
-
-    def isValid(self):
-        return (
-            # 0 not in self.vovan
-            # and
-                0 not in self.ghostOneTime
-                and
-                not any(0 in p for p in self.ghostPair))

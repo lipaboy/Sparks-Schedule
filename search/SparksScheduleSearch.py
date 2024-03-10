@@ -8,11 +8,12 @@ from EmployeeFavor import EmployeeFavor, ScheduleExtractionExcelType
 class SparksScheduleSearch:
     """"""
     """ Главный метод для поиска оптимальных расписаний """
+
     def search(self, mode='part') -> list[ScheduleExtractionExcelType]:
         minDebatov = float(1e5)
-        bestCount = 12
-        schedulesBest = {minDebatov + i * 1.0: Schedule(self.favor.pairDayStart())
-                         for i in range(bestCount)}
+        ghostBestCount = 6
+        ghostSchedulesBest = {minDebatov + i * 1.0: Schedule(self.favor.pairDayStart())
+                              for i in range(ghostBestCount)}
         iterationId = 0
         self._schedule.setMode(mode)
         for _ in self._schedule.ghostTraversalGen():
@@ -22,39 +23,141 @@ class SparksScheduleSearch:
             if iterationId % int(1e5) == 0:
                 print('.', end='')
 
-            currDebatov = self.calcDebatov(self._schedule)
+            currDebatov = self.calcGhostDebatov(self._schedule)
 
             if currDebatov < minDebatov:
-                schedulesBest.pop(max(schedulesBest.keys()))
-                while currDebatov in schedulesBest:
+                ghostSchedulesBest.pop(max(ghostSchedulesBest.keys()))
+                while currDebatov in ghostSchedulesBest:
                     currDebatov += 0.0001
-                schedulesBest[currDebatov] = copy.deepcopy(self._schedule)
-                minDebatov = float(max(schedulesBest.keys()))
+                ghostSchedulesBest[currDebatov] = copy.deepcopy(self._schedule)
+                minDebatov = float(max(ghostSchedulesBest.keys()))
 
-        print()
+        if self.debug: print()
 
-        schedulesBest = dict(sorted(schedulesBest.items()))
+        """ Ищем расписание старших """
+
+        minDebatov = float(1e5)
+        elderBestCount = 2
+        elderSchedulesBest = {minDebatov + i * 1.0: Schedule(self.favor.pairDayStart())
+                              for i in range(elderBestCount)}
+        for _ in self._schedule.elderTraversalGen():
+            currDebatov = self.calcElderDebatov(self._schedule)
+
+            if currDebatov < minDebatov:
+                elderSchedulesBest.pop(max(elderSchedulesBest.keys()))
+                while currDebatov in elderSchedulesBest:
+                    currDebatov += 0.0001
+                elderSchedulesBest[currDebatov] = copy.deepcopy(self._schedule)
+                minDebatov = float(max(elderSchedulesBest.keys()))
+            pass
+
+        ghostSchedulesBest = dict(sorted(ghostSchedulesBest.items()))
+        elderSchedulesBest = dict(sorted(elderSchedulesBest.items()))
+
+        commonSchedules = []
+        for g in ghostSchedulesBest.values():
+            for e in elderSchedulesBest.values():
+                s = copy.deepcopy(g)
+                s.vovan = e.vovan
+                commonSchedules.append(s)
+
         if self.debug:
-            schedulesForPrint = dict(sorted(schedulesBest.items(), reverse=True))
+            schedulesForPrint = reversed(commonSchedules)
             print(f"Количество итераций: {iterationId}")
             print()
-            i = len(schedulesForPrint) - 1
-            for debatov, s in schedulesForPrint.items():
+            i = len(commonSchedules) - 1
+            for s in schedulesForPrint:
                 print(f"id: {i}")
                 i -= 1
-                print(f"Минимум дебатов: {debatov}")
                 self.favor.print(s)
                 print()
 
-        return [self.favor.toExcel(s) for _, s in schedulesBest.items()]
+            # schedulesForPrint = dict(sorted(ghostSchedulesBest.items(), reverse=True))
+            # print(f"Количество итераций: {iterationId}")
+            # print()
+            # i = len(schedulesForPrint) - 1
+            # for debatov, s in schedulesForPrint.items():
+            #     print(f"id: {i}")
+            #     i -= 1
+            #     print(f"Минимум дебатов: {debatov}")
+            #     self.favor.print(s)
+            #     print()
 
-    """ Посчитать количество дебатов для конкретного расписания """
-    def calcDebatov(self,
-                    schedule: Schedule) -> float:
+            # schedulesForPrint = dict(sorted(elderSchedulesBest.items(), reverse=True))
+            # print(f"Количество итераций: {iterationId}")
+            # print()
+            # i = len(schedulesForPrint) - 1
+            # for debatov, s in schedulesForPrint.items():
+            #     print(f"id: {i}")
+            #     i -= 1
+            #     print(f"Минимум дебатов: {debatov:.4f}")
+            #     self.favor.printElder(s)
+            #     print()
+
+        return [self.favor.toExcel(s) for s in commonSchedules]
+
+    """ Посчитать количество дебатов для конкретного расписания старших """
+    def calcElderDebatov(self,
+                         schedule: Schedule) -> float:
+        currDebatov = 0.0
+
+        """ The Longest Turn Repeats """
+        # вещественный, потому что длина смены может быть не целой величиной
+        maxShiftRepeats = 0.0
+
+        """ Undesirable Days """
+        undesirableDaysCount = 0
+
+        luba = schedule.calcLubaSchedule()
+
+        prevDay = -1
+        shiftRepeats = 1.0
+        for day in schedule.vovan:
+            """ The Longest Shift Repeats """
+            # если дни в расписании идут по порядку, значит есть непрерывная череда смен
+            if day == prevDay + 1:
+                shiftRepeats += 1
+                maxShiftRepeats = max(shiftRepeats, maxShiftRepeats)
+            else:
+                shiftRepeats = 1.0
+            prevDay = day
+
+            """ Undesirable Days """
+            if day in self.favor.undesirableElderDays[1]:
+                undesirableDaysCount += 1
+
+        prevDay = -1
+        shiftRepeats = 1.0
+        for day in luba:
+            """ The Longest Shift Repeats """
+            # если дни в расписании идут по порядку, значит есть непрерывная череда смен
+            if day == prevDay + 1:
+                shiftRepeats += 1
+                maxShiftRepeats = max(shiftRepeats, maxShiftRepeats)
+            else:
+                shiftRepeats = 1.0
+            prevDay = day
+
+            """ Undesirable Days """
+            if day in self.favor.undesirableElderDays[2]:
+                undesirableDaysCount += 1
+
+        """ The Longest Turn Repeats """
+        if maxShiftRepeats >= 3.0:
+            currDebatov += self.shiftRepeatCoef + (maxShiftRepeats - 3) * self.shiftRepeatCoef
+
+        """ Undesirable Days """
+        currDebatov += undesirableDaysCount * self.undesirableDayCoef
+
+        return currDebatov
+
+    """ Посчитать количество дебатов для конкретного расписания духов """
+    def calcGhostDebatov(self,
+                         schedule: Schedule) -> float:
         currDebatov = 0.0
 
         """ Turn Count By Ghost """
-        turnCountDict = [0.0 for _ in self.favor.ghostNames]
+        shiftCountDict = [0.0 for _ in self.favor.ghostNames]
 
         """ The Longest Turn Repeats """
         # вещественный, потому что длина смены может быть не целой величиной
@@ -68,7 +171,7 @@ class SparksScheduleSearch:
         # пн, вт, ср
         for day, ghostId in zip(self._oneTimeWeek, schedule.ghostOneTime):
             """ Turn Count By Ghost """
-            turnCountDict[ghostId - 1] += 1
+            shiftCountDict[ghostId - 1] += 1
 
             """ The Longest Turn Repeats """
             if ghostIdRepeat == ghostId:
@@ -90,8 +193,8 @@ class SparksScheduleSearch:
         for day, p in zip(self._pairWeek, schedule.ghostPair):
             # currDayLen = self.shiftLenByDay[day - 1]
             """ Turn Count By Ghost """
-            turnCountDict[p[0] - 1] += self.getShiftLenBy(day, True)
-            turnCountDict[p[1] - 1] += self.getShiftLenBy(day, False)
+            shiftCountDict[p[0] - 1] += self.getShiftLenBy(day, True)
+            shiftCountDict[p[1] - 1] += self.getShiftLenBy(day, False)
 
             """ The Longest Turn Repeats """
             # noinspection DuplicatedCode
@@ -120,7 +223,7 @@ class SparksScheduleSearch:
         # смотрим разницу между желаемым количеством смен для каждого духа
         # и текущим рассматриваемым расписанием
         for ghostId, limit in self.favor.ghostLimits.items():
-            currDebatov += self.differInShiftsCoef * abs(turnCountDict[ghostId - 1] - limit)
+            currDebatov += self.differInShiftsCoef * abs(shiftCountDict[ghostId - 1] - limit)
 
         """ The Longest Turn Repeats """
         maxShiftRepeat = max(maxShiftRepeat, shiftRepeats, secondShiftRepeats)
@@ -145,9 +248,9 @@ class SparksScheduleSearch:
         secondGhostIdRepeat = prevSchedule.ghostPair[-1][1]
         readyFirst = False
         readySecond = False
+
         for day, p in zip(itertools.islice(reversed(self._pairWeek), 1, None),
                           itertools.islice(reversed(prevSchedule.ghostPair), 1, None)):
-
             """ The Longest Turn Repeats """
             if (not readyFirst and
                     (ghostIdRepeat == p[0] or ghostIdRepeat == p[1])):
