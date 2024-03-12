@@ -1,5 +1,5 @@
-from Schedule import Schedule
-from ScheduleExtractionExcelType import ScheduleExtractionExcelType, EmployeeCard
+from search.Schedule import Schedule
+from search.ScheduleExtractionExcelType import ScheduleExtractionExcelType, EmployeeCard
 
 
 class EmployeeFavor:
