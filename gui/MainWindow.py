@@ -1,4 +1,6 @@
 import tkinter as tk
+import os
+import excel.mainExcel as ExcelCore
 
 
 class MainWindow:
@@ -25,6 +27,11 @@ class MainWindow:
         # self.inputField.pack_forget()
 
     def makeScheduleRequest(self):
+        """"""
+        """ TODO: Вызвать функцию поиска расписания для вывода его в эксель"""
+        ExcelCore.output_pool_of_schedule_to_excel(ExcelCore.FILENAME_POOL_TIMETABLE, 'fast')
+        os.system('start EXCEL.exe ' + ExcelCore.FILENAME_POOL_TIMETABLE)
+
         self.statusLabel.config(text='Варианты расписаний сформированы.')
         self.makeScheduleButton.pack_forget()
         self.chooseIdLabel.pack(pady=10)
