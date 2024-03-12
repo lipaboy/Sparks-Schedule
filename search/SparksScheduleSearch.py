@@ -1,8 +1,8 @@
 import copy
 import itertools
 
-from Schedule import Schedule
-from EmployeeFavor import EmployeeFavor, ScheduleExtractionExcelType
+from search.Schedule import Schedule
+from search.EmployeeFavor import EmployeeFavor, ScheduleExtractionExcelType
 
 
 class SparksScheduleSearch:

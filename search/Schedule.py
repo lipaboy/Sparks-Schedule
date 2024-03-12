@@ -1,4 +1,4 @@
-from NextSchedule import *
+from search.NextSchedule import *
 
 
 class Schedule:
