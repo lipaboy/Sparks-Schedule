@@ -6,14 +6,18 @@ if __name__ == "__main__":
 
     _startMeasure = time.time()
 
-    sparks.debug = True
-    results = sparks.search(mode='fast')
-
-    # sparks.favor.print(sparks.favor.fromExcel(results[0]))
-    # sparks.loadPreviousWeekSchedule(results[0])
-
     # sparks.debug = True
-    # results = sparks.search()
+    results = sparks.search(mode='part')
+    # for i in results:
+    #     for j in i:
+    #         print(j.Name, j.Shifts)
+    #     print()
+
+    sparks.favor.print(sparks.favor.fromExcel(results[11]))
+    sparks.loadPreviousWeekSchedule(results[11])
+
+    sparks.debug = True
+    results = sparks.search()
     # sparks.favor.print(sparks.favor.fromExcel(results[0]))
 
     print(f"Время работы: {time.time() - _startMeasure:.2f}s")

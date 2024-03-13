@@ -62,18 +62,17 @@ class EmployeeFavor:
         excelDict = ScheduleExtractionExcelType()
 
         for ghostName, ghostId in self.ghostNames.items():
-            turnList = []
-            employeeCard = EmployeeCard(ghostName, False)
+            employeeCard = EmployeeCard(ghostName, False, [])
 
             for i, day in zip(schedule.ghostOneTime, self._oneTimeWeek):
                 if i == ghostId:
-                    turnList.append((day, 1.0, 'Hall'))
+                    employeeCard.Shifts.append((day, 1.0, 'Hall'))
 
             for p, day in zip(schedule.ghostPair, self._pairWeek):
                 if ghostId == p[0] or ghostId == p[1]:
-                    turnList.append((day, self._shiftDayLen[day - 1] if ghostId == p[0] else 1.0, 'Hall'))
+                    employeeCard.Shifts.append((day, self._shiftDayLen[day - 1] if ghostId == p[0] else 1.0, 'Hall'))
 
-            excelDict[employeeCard] = turnList
+            excelDict.append(employeeCard)
 
         return excelDict
 
@@ -83,12 +82,12 @@ class EmployeeFavor:
     def fromExcel(self, excelSchedule: ScheduleExtractionExcelType) -> Schedule:
         schedule = Schedule(self.pairDayStart())
 
-        for ghostCard, ghostSchedule in excelSchedule.items():
+        for ghostCard in excelSchedule:
             # skip eldermen
             if ghostCard.IsElder is True:
                 continue
             ghostId = self.ghostNames[ghostCard.Name]
-            for day, shiftLen, _ in ghostSchedule:
+            for day, shiftLen, _ in ghostCard.Shifts:
                 if day < self.pairDayStart():
                     schedule.ghostOneTime[day - 1] = ghostId
                 elif day <= 7:

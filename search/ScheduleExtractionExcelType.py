@@ -4,19 +4,19 @@ DayType = int
 ShiftLength = float
 """ Место, где работает сотрудник (Hall - в зале (excel - 'С'), Truck - тачка (excel - 'Т')) """
 PlaceToWork = str
+
+ShiftType = tuple[DayType, ShiftLength, PlaceToWork]
+
 """ Карточка сотрудника """
-# TODO: сделать как нормально
 class EmployeeCard:
-    def __init__(self, Name: str, IsElder: bool):
-        self.Name = Name
+    def __init__(self, name: str, isElder: bool, shifts: list[ShiftType]):
+        self.Name = name
         """ Является сотрудник старшим (True - старший) """
-        self.IsElder = IsElder
-        # self.lstDays = list[tuple]
+        self.IsElder = isElder
+        """ Смены сотрудника """
+        self.Shifts = shifts
 
 """ Формат выгрузки в эксель модуль. Один ExcelType - это одно расписание """
-ScheduleExtractionExcelType = dict[EmployeeCard, list[tuple[DayType, ShiftLength, PlaceToWork]]]
-
-# todo:
-# ScheduleExtractionExcelType = list[EmployeeCard]
+ScheduleExtractionExcelType = list[EmployeeCard]
 
 
