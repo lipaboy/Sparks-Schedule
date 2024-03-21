@@ -11,13 +11,15 @@ FILENAME_SCHEDULE_DATA_BASE = "../ScheduleDataBase.xlsx"
 WEEK_LENGTH = 7
 SPACE_BETWEEN_TABLES = 1
 NUMBER_OF_TABLES_IN_LINE = 3
+TABLE_0_COLUMN_WIDTH = 10 #For BD sheet min value 10
+TABLE_1_COLUMN_WIDTH = 15 #For Staff and Tracks sheets
 MEDIUM_BORDER = openpyxl.styles.Side(border_style="medium", color="000000")
 THICK_BORDER = openpyxl.styles.Side(border_style="thick", color="000000")
 CHAR_CROSS = '✕' #'✖'
 CHAR_HALL = 'С' #RUS С
 CHAR_HALF_HALL = 'С2' #RUS С
 CHAR_TRACK = 'Т' #RUS Т
-ERROR_STR_HEAD = "\n\t**ERROR"
+ERROR_STR_HEAD = "\n\t**ERROR"#! (numOfFunction)\n\t\t
 
 def formatting_cell(sheet, row, column, value, fontSize, fontName, fontBold, fontItalic, alignmentHorizontal, alignmentVertical):
     sheet.cell(row=row, column=column).value = value
@@ -72,9 +74,9 @@ def output_pool_of_schedule_to_excel(filenamePoolTimetable, searchMode="fast"):#
     for numOfTable in range(len(timeTable)):
         startingPointColumn = 1 + ((numOfTable % NUMBER_OF_TABLES_IN_LINE) * tableWidth)
         startingPointRow = 1 + ((numOfTable // NUMBER_OF_TABLES_IN_LINE) * tableHeight)
-        sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn)].width = 10
+        sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn)].width = TABLE_0_COLUMN_WIDTH
         for i in range(1, WEEK_LENGTH + 1):
-            sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn+i)].width = 10#15 #if [day, dd mmmm]
+            sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn+i)].width = TABLE_0_COLUMN_WIDTH#15 #if [day, dd mmmm]
         formatting_cell(sheet, startingPointRow, startingPointColumn, f"№ {numOfTable + 1}", 14, "Times New Roman", False, False, "center", "center")
         #--Formatting and x-filling the timetable
         for row in range(startingPointRow+1, len(staff)+startingPointRow+1):
@@ -121,12 +123,30 @@ def init_schedule_data_base(filenameSceduleDataBase):
     sheet = wbSceduleDataBase.worksheets[0]
     sheet.title = "БД Расписаний"
     formatting_cell(sheet, 1, 1, 0, 14, "Times New Roman", False, False, "center", "center")
-    wbSceduleDataBase.create_sheet('Распределение "Тачек"')
     wbSceduleDataBase.create_sheet("Персонал")
+    sheet = wbSceduleDataBase.worksheets[1]
+    columnCursor = 1
+    sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
+    formatting_cell(sheet, 1, columnCursor, "Имя", 14, "Times New Roman", True, False, "center", "center")
+    sheet.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=MEDIUM_BORDER, bottom=THICK_BORDER)
+    columnCursor = 2
+    sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
+    formatting_cell(sheet, 1, columnCursor, "Старший", 14, "Times New Roman", True, False, "center", "center")
+    sheet.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
+    wbSceduleDataBase.create_sheet('Распределение "Тачек"')
+    sheet = wbSceduleDataBase.worksheets[2]
+    columnCursor = 1
+    sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
+    formatting_cell(sheet, 1, columnCursor, "Имя", 14, "Times New Roman", True, False, "center", "center")
+    sheet.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=MEDIUM_BORDER, bottom=THICK_BORDER)
+    columnCursor = 2
+    sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
+    formatting_cell(sheet, 1, columnCursor, "Кол-во Т", 14, "Times New Roman", True, False, "center", "center")
+    sheet.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\n\tFile '{filenameSceduleDataBase}' was created!")
 
-def update_schedule_data_base(filenamePoolTimetable, filenameSceduleDataBase, numChoosingTimetable):
+def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, numChoosingTimetable):
     #Init
     wbSceduleDataBase = openpyxl.load_workbook(filename = filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[0]
@@ -149,6 +169,8 @@ def update_schedule_data_base(filenamePoolTimetable, filenameSceduleDataBase, nu
     poolPointRow = 1 + (((numChoosingTimetable-1) // NUMBER_OF_TABLES_IN_LINE) * tableHeight)
     #--
     #Update DB
+    for j in range(tableWidth-SPACE_BETWEEN_TABLES):
+        sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn+j)].width = TABLE_0_COLUMN_WIDTH
     for i in range(tableHeight-SPACE_BETWEEN_TABLES):
         for j in range(tableWidth-SPACE_BETWEEN_TABLES):
             sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).value = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).value
@@ -163,7 +185,41 @@ def update_schedule_data_base(filenamePoolTimetable, filenameSceduleDataBase, nu
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\nPool schedule number {numChoosingTimetable} was added to Schedule Data Base '{filenameSceduleDataBase}'")
 
-def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#TODO IsElder. How get status from table?
+def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None, numOfSelectedSchedule=-1):
+    #Check the 2nd parameter
+    if poolOfNewStaff != None:
+        print(f"{ERROR_STR_HEAD}! (update_schedule_data_base_staff)\n\t\tType of data wasn't selected")#Todo Add update from array of data
+        return
+    #--
+    wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
+    sheet = wbSceduleDataBase.worksheets[0]
+    sheetStaff = wbSceduleDataBase.worksheets[1]
+    lengthOfDataBase = sheet.cell(row=1, column=1).value
+    # Check the 3rd parameter
+    if numOfSelectedSchedule == -1:
+        selectedNumber = lengthOfDataBase
+    else:
+        selectedNumber = numOfSelectedSchedule
+    if ((selectedNumber < 1) or (selectedNumber > lengthOfDataBase)):
+        print(ERROR_STR_HEAD + "! (get_schedule_data_base)\n\t\tOut of range!!!")  # it gives the last schedule in DB
+        return None
+    #--
+    tableWidth = 1 + 7 + SPACE_BETWEEN_TABLES  # +1 - begin from 1; 7 - week length; +1 - space between tables
+    startingPointColumn = 1 + ((selectedNumber-1) * tableWidth)
+    startingPointRow = 4
+    staffPointColumn = 1
+    staffPointRow = 2 #Because we already have HEAD
+    i = 0
+    while sheet.cell(row=startingPointRow + i, column=startingPointColumn).value != None:
+        formatting_cell(sheetStaff, staffPointRow + i, staffPointColumn, sheet.cell(row=startingPointRow+i, column=startingPointColumn).value,
+                        14, "Times New Roman", False, True, "right", "center")
+        formatting_cell(sheetStaff, staffPointRow + i, staffPointColumn+1, "-",
+                        14, "Times New Roman", False, False, "center", "center")
+        i += 1
+    wbSceduleDataBase.save(FILENAME_SCHEDULE_DATA_BASE)
+    print(f"\nStaff was updated on Schedule Data Base '{filenameSceduleDataBase}'")
+
+def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#TODO IsElder. How get status from table? Take it from Personal's sheet
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[0]
     lengthOfDataBase = sheet.cell(row=1, column=1).value
@@ -172,23 +228,20 @@ def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#T
         selectedNumber = lengthOfDataBase
     else:
         selectedNumber = numOfSelectedSchedule
-
     if ((selectedNumber < 1) or (selectedNumber > lengthOfDataBase)):
-        print(ERROR_STR_HEAD + "!\n\t\tOut of range!!!") #it gives the last schedule in DB
+        print(ERROR_STR_HEAD + "! (get_schedule_data_base)\n\t\tOut of range!!!") #it gives the last schedule in DB
         return None
     print(f"\n\tTable's selected number: {selectedNumber}")
     #--
-    #Calc of staff's size
-    staffLength = 0
-    r = 4
-    while sheet.cell(row=r, column=1).value != None:
-        staffLength += 1
-        r += 1
-    #--
     #Init tables parameters
     tableWidth = 1 + 7 + SPACE_BETWEEN_TABLES  # +1 - begin from 1; 7 - week length; +1 - space between tables
-    tableHeight = 1 + staffLength + SPACE_BETWEEN_TABLES
     startingPointColumn = 1 + ((selectedNumber-1) * tableWidth)
+    staffLength = 0
+    r = 4
+    while sheet.cell(row=r, column=startingPointColumn).value != None:
+        staffLength += 1
+        r += 1
+    tableHeight = 1 + staffLength + SPACE_BETWEEN_TABLES
     startingPointRow = 3
     #--
     #get selected schedule from data base
@@ -222,20 +275,24 @@ def check_output_and_update_schedule(searchMode="fast"):#TEST FUNCTION!!!
         try:
             numChoosingTimetable = int(numChoosingTimetable)
         except:
-            print(ERROR_STR_HEAD + " TYPE!\n\t\tPlease, enter integer value.")
+            print(ERROR_STR_HEAD + " TYPE! (check_output_and_update_schedule)\n\t\tPlease, enter integer value.")
         else:
             if ((numChoosingTimetable < 1) or (numChoosingTimetable > lengthOfPool)):
-                print(f"{ERROR_STR_HEAD} VALUE!\n\t\tPlease, enter value from 1 to {lengthOfPool}.")
+                print(f"{ERROR_STR_HEAD} VALUE! (check_output_and_update_schedule)\n\t\tPlease, enter value from 1 to {lengthOfPool}.")
             else:
                 break
-    update_schedule_data_base(FILENAME_POOL_TIMETABLE, FILENAME_SCHEDULE_DATA_BASE, numChoosingTimetable)
+    update_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE, FILENAME_POOL_TIMETABLE, numChoosingTimetable)
 
-if __name__ == "__main__":
-    # init_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE)
-    # check_output_and_update_schedule("full") # "fast", "part", "full"
-    schedule = get_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE)
+def check_get_schdedule(numOfSelectedSchedule=-1):
+    schedule = get_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE, numOfSelectedSchedule)
     if schedule != None:
         for i in range(len(schedule)):
             print(schedule[i].Name, schedule[i].IsElder, schedule[i].Shifts)
     else:
-        print(ERROR_STR_HEAD + "!\n\t\tEmpty data base!")
+        print(ERROR_STR_HEAD + "! (check_get_schdedule)\n\t\tEmpty data base!")
+
+if __name__ == "__main__":
+    # init_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE)
+    # check_output_and_update_schedule("fast") # "fast", "part", "full"
+    # check_get_schdedule()
+    update_schedule_data_base_staff(FILENAME_SCHEDULE_DATA_BASE)
