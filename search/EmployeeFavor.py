@@ -59,7 +59,18 @@ class EmployeeFavor:
         self._nameMaxLen = 6
 
     def toExcel(self, schedule: Schedule) -> ScheduleExtractionExcelType:
-        excelDict = ScheduleExtractionExcelType()
+        workersData = ScheduleExtractionExcelType()
+
+        vovanCard = EmployeeCard(list(self.eldersNames.keys())[0], True, [])
+        lubaCard = EmployeeCard(list(self.eldersNames.keys())[1], True, [])
+        for day in self._week:
+            if day in schedule.vovan:
+                vovanCard.Shifts.append((day, 1.0, 'Hall'))
+            else:
+                lubaCard.Shifts.append((day, 1.0, 'Hall'))
+
+        workersData.append(vovanCard)
+        workersData.append(lubaCard)
 
         for ghostName, ghostId in self.ghostNames.items():
             employeeCard = EmployeeCard(ghostName, False, [])
@@ -70,17 +81,20 @@ class EmployeeFavor:
 
             for p, day in zip(schedule.ghostPair, self._pairWeek):
                 if ghostId == p[0] or ghostId == p[1]:
-                    employeeCard.Shifts.append((day, self._shiftDayLen[day - 1] if ghostId == p[0] else 1.0, 'Hall'))
+                    employeeCard.Shifts.append(
+                        (day, self._shiftDayLen[day - 1] if ghostId == p[0] else 1.0, 'Hall'))
 
-            excelDict.append(employeeCard)
+            workersData.append(employeeCard)
 
-        return excelDict
+        return workersData
 
     def pairDayStart(self):
         return self._pairWeek[0]
 
     def fromExcel(self, excelSchedule: ScheduleExtractionExcelType) -> Schedule:
         schedule = Schedule(self.pairDayStart())
+
+        # todo: добавить старших
 
         for ghostCard in excelSchedule:
             # skip eldermen

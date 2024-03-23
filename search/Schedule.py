@@ -7,6 +7,14 @@ class Schedule:
         self.ghostOneTime = [0 for _ in range(1, pairDayStart)]
         self.ghostPair = [(0, 0) for _ in range(pairDayStart, 7 + 1)]
         self.ghostPairAlgo = self.__nextGhostPair_vPart
+        self.pairDayStart = pairDayStart
+
+    " Сначала старшие, потом духи "
+    def getWorkersAtDay(self, day: int) -> tuple[list[int], list[int]]:
+        return ([1] if day in self.vovan else [2],
+                self.ghostOneTime[day - 1]
+                if day < self.pairDayStart
+                else list(self.ghostPair[day - self.pairDayStart]))
 
     def getElders(self) -> dict[int, list[int]]:
         return {

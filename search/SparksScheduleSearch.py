@@ -72,28 +72,6 @@ class SparksScheduleSearch:
                 self.favor.print(s)
                 print()
 
-            # schedulesForPrint = dict(sorted(ghostSchedulesBest.items(), reverse=True))
-            # print(f"Количество итераций: {iterationId}")
-            # print()
-            # i = len(schedulesForPrint) - 1
-            # for debatov, s in schedulesForPrint.items():
-            #     print(f"id: {i}")
-            #     i -= 1
-            #     print(f"Минимум дебатов: {debatov}")
-            #     self.favor.print(s)
-            #     print()
-
-            # schedulesForPrint = dict(sorted(elderSchedulesBest.items(), reverse=True))
-            # print(f"Количество итераций: {iterationId}")
-            # print()
-            # i = len(schedulesForPrint) - 1
-            # for debatov, s in schedulesForPrint.items():
-            #     print(f"id: {i}")
-            #     i -= 1
-            #     print(f"Минимум дебатов: {debatov:.4f}")
-            #     self.favor.printElder(s)
-            #     print()
-
         return [self.favor.toExcel(s) for s in commonSchedules]
 
     """ Посчитать количество дебатов для конкретного расписания старших """
