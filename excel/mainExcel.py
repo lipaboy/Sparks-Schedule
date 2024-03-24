@@ -186,7 +186,7 @@ def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None
     #Check the 2nd parameter
     if poolOfNewStaff != None:
         print(f"{ERROR_STR_HEAD}! (update_schedule_data_base_staff)\n\t\tType of data wasn't selected")#Todo Add update from array of data
-        return
+        return None
     #--
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[0]
@@ -210,7 +210,7 @@ def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None
     else:
         selectedNumber = numOfSelectedSchedule
     if ((selectedNumber < 1) or (selectedNumber > lengthOfDataBase)):
-        print(ERROR_STR_HEAD + "! (get_schedule_data_base)\n\t\tOut of range!!!")  # it gives the last schedule in DB
+        print(ERROR_STR_HEAD + "! (update_schedule_data_base_staff)\n\t\tOut of range!!!")  # it gives the last schedule in DB
         return None
     #--
     tableWidth = 1 + 7 + SPACE_BETWEEN_TABLES  # +1 - begin from 1; 7 - week length; +1 - space between tables
@@ -235,8 +235,43 @@ def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None
     wbSceduleDataBase.save(FILENAME_SCHEDULE_DATA_BASE)
     print(f"\nStaff was updated on Schedule Data Base '{filenameSceduleDataBase}'")
 
-def update_schedule_data_base_track(filenameSceduleDataBase):
-    print(begin)
+def update_schedule_data_base_track(filenameSceduleDataBase, poolOfStaffAndTrack=None,):
+    # Check the 2nd parameter
+    if poolOfStaffAndTrack != None:
+        print(f"{ERROR_STR_HEAD}! (update_schedule_data_base_track)\n\t\tType of data wasn't selected")  # Todo Add update from array of data
+        return None
+    # --
+    wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
+    sheetStaff = wbSceduleDataBase.worksheets[1]
+    sheetTrack = wbSceduleDataBase.worksheets[2]
+    # Clear sheet of staff
+    sheetTrack.delete_cols(1)
+    sheetTrack.delete_cols(1)
+    columnCursor = 1
+    sheetTrack.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
+    formatting_cell(sheetTrack, 1, columnCursor, "Имя", 14, "Times New Roman", True, False, "center", "center")
+    sheetTrack.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=MEDIUM_BORDER, bottom=THICK_BORDER)
+    columnCursor = 2
+    sheetTrack.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
+    formatting_cell(sheetTrack, 1, columnCursor, "Кол-во Т", 14, "Times New Roman", True, False, "center", "center")
+    sheetTrack.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
+    #--
+    staffPointRow = 2
+    staffPointColumn = 1
+    i = 0
+    while sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn).value != None:
+        formatting_cell(sheetTrack, staffPointRow + i, staffPointColumn, sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn).value,
+                        14, "Times New Roman", sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn).font.b, True, "right", "center")
+        formatting_cell(sheetTrack, staffPointRow + i, staffPointColumn+1, 0,
+                        14, "Times New Roman", False, False, "center", "center")
+        sheetTrack.cell(row=staffPointRow + i, column=staffPointColumn).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
+        sheetTrack.cell(row=staffPointRow + i, column=staffPointColumn+1).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
+        i += 1
+    if i == 0:
+        print(ERROR_STR_HEAD + "! (update_schedule_data_base_track)\n\t\tList of staff is empty!")  # it gives the last schedule in DB
+        return None
+    wbSceduleDataBase.save(FILENAME_SCHEDULE_DATA_BASE)
+    print(f"\nTrack was updated on Schedule Data Base '{filenameSceduleDataBase}'")
 
 def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#TODO IsElder. How get status from table? Take it from Personal's sheet
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
@@ -285,6 +320,12 @@ def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#T
     #--
     return outputSchedule
 
+def get_schedule_data_base_staff(filenameSceduleDataBase):
+    print("BEGIN STAFF")
+
+def get_schedule_data_base_track(filenameSceduleDataBase):
+    print("BEGIN TRACK")
+
 def check_output_and_update_schedule(searchMode="fast"):#TEST FUNCTION!!!
     lengthOfPool = output_pool_of_schedule_to_excel(FILENAME_POOL_TIMETABLE, searchMode)  # "fast", "part", "full"
     while True:
@@ -308,8 +349,12 @@ def check_get_schdedule(numOfSelectedSchedule=-1):
     else:
         print(ERROR_STR_HEAD + "! (check_get_schdedule)\n\t\tEmpty data base!")
 
-if __name__ == "__main__":
-    # init_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE)
-    check_output_and_update_schedule("fast") # "fast", "part", "full"
-    check_get_schdedule()
+def check_full(searchMode="fast"):
+    init_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE)
+    check_output_and_update_schedule(searchMode) # "fast", "part", "full"
     update_schedule_data_base_staff(FILENAME_SCHEDULE_DATA_BASE)
+    update_schedule_data_base_track(FILENAME_SCHEDULE_DATA_BASE)
+    check_get_schdedule()
+
+if __name__ == "__main__":
+    check_full("fast")
