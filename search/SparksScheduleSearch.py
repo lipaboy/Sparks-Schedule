@@ -2,14 +2,16 @@ import copy
 import itertools
 
 from search.Schedule import Schedule
-from search.EmployeeFavor import EmployeeFavor, ScheduleExtractionExcelType
+from search.EmployeeFavor import EmployeeFavor, WeekScheduleExcelType
 
 
 class SparksScheduleSearch:
     """"""
     """ Главный метод для поиска оптимальных расписаний """
 
-    def search(self, mode='part') -> list[ScheduleExtractionExcelType]:
+    def search(self, prevSchedule=None, mode='part') -> list[WeekScheduleExcelType]:
+        if prevSchedule is not None:
+            self.__loadPreviousWeekSchedule(prevSchedule)
         minDebatov = float(1e5)
         ghostBestCount = 6
         ghostSchedulesBest = {minDebatov + i * 1.0: Schedule(self.favor.pairDayStart())
@@ -213,8 +215,8 @@ class SparksScheduleSearch:
 
         return currDebatov
 
-    def loadPreviousWeekSchedule(self,
-                                 excelSchedule: ScheduleExtractionExcelType):
+    def __loadPreviousWeekSchedule(self,
+                                   excelSchedule: WeekScheduleExcelType):
         prevSchedule = self.favor.fromExcel(excelSchedule)
         if self.debug:
             self.favor.print(prevSchedule)
