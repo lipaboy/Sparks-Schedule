@@ -1,5 +1,5 @@
 from search.Schedule import Schedule
-from search.ScheduleExtractionExcelType import ScheduleExtractionExcelType, EmployeeCard
+from search.WeekScheduleExcelType import WeekScheduleExcelType, EmployeeCard
 
 
 class EmployeeFavor:
@@ -17,7 +17,7 @@ class EmployeeFavor:
         }
 
         self.truckDistribution = {
-            name: 0 for name in (list(self.ghostNames.keys()) + list(self.eldersNames.keys()))
+            name: 0 for name in (list(self.eldersNames.keys()) + list(self.ghostNames.keys()))
         }
 
         # дни, в которых есть нецелые смены
@@ -58,8 +58,8 @@ class EmployeeFavor:
 
         self._nameMaxLen = 6
 
-    def toExcel(self, schedule: Schedule) -> ScheduleExtractionExcelType:
-        workersData = ScheduleExtractionExcelType()
+    def toExcel(self, schedule: Schedule) -> WeekScheduleExcelType:
+        employeeCards = list[EmployeeCard]()
 
         vovanCard = EmployeeCard(list(self.eldersNames.keys())[0], True, [])
         lubaCard = EmployeeCard(list(self.eldersNames.keys())[1], True, [])
@@ -69,8 +69,8 @@ class EmployeeFavor:
             else:
                 lubaCard.Shifts.append((day, 1.0, 'Hall'))
 
-        workersData.append(vovanCard)
-        workersData.append(lubaCard)
+        employeeCards.append(vovanCard)
+        employeeCards.append(lubaCard)
 
         for ghostName, ghostId in self.ghostNames.items():
             employeeCard = EmployeeCard(ghostName, False, [])
@@ -84,19 +84,19 @@ class EmployeeFavor:
                     employeeCard.Shifts.append(
                         (day, self._shiftDayLen[day - 1] if ghostId == p[0] else 1.0, 'Hall'))
 
-            workersData.append(employeeCard)
+            employeeCards.append(employeeCard)
 
-        return workersData
+        return WeekScheduleExcelType(employeeCards=employeeCards)
 
     def pairDayStart(self):
         return self._pairWeek[0]
 
-    def fromExcel(self, excelSchedule: ScheduleExtractionExcelType) -> Schedule:
+    def fromExcel(self, excelSchedule: WeekScheduleExcelType) -> Schedule:
         schedule = Schedule(self.pairDayStart())
 
         # todo: добавить старших
 
-        for ghostCard in excelSchedule:
+        for ghostCard in excelSchedule.EmployeeCards:
             # skip eldermen
             if ghostCard.IsElder is True:
                 continue

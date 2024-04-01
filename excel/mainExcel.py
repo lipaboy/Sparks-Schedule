@@ -2,9 +2,9 @@ import openpyxl
 import datetime
 import copy
 from search.SparksScheduleSearch import SparksScheduleSearch
-from search.ScheduleExtractionExcelType import ShiftType
-from search.ScheduleExtractionExcelType import EmployeeCard
-from search.ScheduleExtractionExcelType import ScheduleExtractionExcelType
+from search.WeekScheduleExcelType import ShiftType
+from search.WeekScheduleExcelType import EmployeeCard
+from search.WeekScheduleExcelType import WeekScheduleExcelType
 
 FILENAME_POOL_TIMETABLE = "../PoolTimetable.xlsx"
 FILENAME_SCHEDULE_DATA_BASE = "../ScheduleDataBase.xlsx"
@@ -363,7 +363,7 @@ def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#T
     startingPointRow = 3
     #--
     #get selected schedule from data base
-    outputSchedule = ScheduleExtractionExcelType()
+    outputSchedule = WeekScheduleExcelType()
     # print("STARTING POINTS ", startingPointRow, startingPointColumn)
     for i in range(1, tableHeight-SPACE_BETWEEN_TABLES):
         # print(sheet.cell(row=startingPointRow+i, column=startingPointColumn).value, end="\t")
