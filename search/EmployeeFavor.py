@@ -1,5 +1,5 @@
 from search.Schedule import Schedule
-from search.WeekScheduleExcelType import WeekScheduleExcelType, EmployeeCard
+from search.WeekScheduleExcelType import WeekScheduleExcelType, EmployeeCard, TruckDistributionType
 
 
 class EmployeeFavor:
@@ -11,13 +11,16 @@ class EmployeeFavor:
             'Лада': 4,
             'Артур': 5
         }
-        self.eldersNames = {
+        self.ghostNamesById = {v: k for k, v in self.ghostNames.items()}
+
+        self.elderNames = {
             'Вован': 1,
             'Люба': 2
         }
+        self.elderNamesById = {v: k for k, v in self.elderNames.items()}
 
         self.truckDistribution = {
-            name: 0 for name in (list(self.eldersNames.keys()) + list(self.ghostNames.keys()))
+            name: 0 for name in (list(self.elderNames.keys()) + list(self.ghostNames.keys()))
         }
 
         # дни, в которых есть нецелые смены
@@ -58,16 +61,38 @@ class EmployeeFavor:
 
         self._nameMaxLen = 6
 
+    def __parseWhoUnderTruck(self, schedule: Schedule, trucks: TruckDistributionType, day: int) -> str:
+        elderId, ghostIdList = schedule.getWorkersAtDay(day)
+        elder = self.elderNamesById[elderId]
+        names = [elder] + [self.ghostNamesById[w] for w in ghostIdList]
+        worker = min([(n, trucks[n]) for n in names], key=lambda x: x[1])
+        return worker[0]
+
+    def __getNameForTruck(self, name, weekTrucks, day):
+        return 'Truck' if name == weekTrucks[day - 1] else 'Hall'
+
     def toExcel(self, schedule: Schedule) -> WeekScheduleExcelType:
         employeeCards = list[EmployeeCard]()
+        trucks = self.truckDistribution
 
-        vovanCard = EmployeeCard(list(self.eldersNames.keys())[0], True, [])
-        lubaCard = EmployeeCard(list(self.eldersNames.keys())[1], True, [])
+        weekTrucks = []
+        for day in self._week:
+            name = self.__parseWhoUnderTruck(schedule, trucks, day)
+            weekTrucks.append(name)
+            " Увеличиваем количество тачек для сотрудника на 1 с каждым днём "
+            trucks[name] += 1
+
+        vovanCard = EmployeeCard(list(self.elderNames.keys())[0], True, [])
+        lubaCard = EmployeeCard(list(self.elderNames.keys())[1], True, [])
         for day in self._week:
             if day in schedule.vovan:
-                vovanCard.Shifts.append((day, 1.0, 'Hall'))
+                vovanCard.Shifts.append(
+                    (day, 1.0, self.__getNameForTruck(self.elderNamesById[1], weekTrucks, day))
+                )
             else:
-                lubaCard.Shifts.append((day, 1.0, 'Hall'))
+                lubaCard.Shifts.append(
+                    (day, 1.0, self.__getNameForTruck(self.elderNamesById[2], weekTrucks, day))
+                )
 
         employeeCards.append(vovanCard)
         employeeCards.append(lubaCard)
@@ -77,16 +102,21 @@ class EmployeeFavor:
 
             for i, day in zip(schedule.ghostOneTime, self._oneTimeWeek):
                 if i == ghostId:
-                    employeeCard.Shifts.append((day, 1.0, 'Hall'))
+                    employeeCard.Shifts.append(
+                        (day, 1.0, self.__getNameForTruck(ghostName, weekTrucks, day))
+                    )
 
             for p, day in zip(schedule.ghostPair, self._pairWeek):
                 if ghostId == p[0] or ghostId == p[1]:
                     employeeCard.Shifts.append(
-                        (day, self._shiftDayLen[day - 1] if ghostId == p[0] else 1.0, 'Hall'))
+                        (day,
+                         self._shiftDayLen[day - 1] if ghostId == p[0] else 1.0,
+                         self.__getNameForTruck(ghostName, weekTrucks, day))
+                    )
 
             employeeCards.append(employeeCard)
 
-        return WeekScheduleExcelType(employeeCards=employeeCards)
+        return WeekScheduleExcelType(employeeCards=employeeCards, trucks=trucks)
 
     def pairDayStart(self):
         return self._pairWeek[0]
@@ -131,7 +161,7 @@ class EmployeeFavor:
         self.__printWeek()
         elders = schedule.getElders()
 
-        for name, elderId in self.eldersNames.items():
+        for name, elderId in self.elderNames.items():
             print(name.rjust(self._nameMaxLen) + ':', end='')
             for day in self._week:
                 turnName = 'C'

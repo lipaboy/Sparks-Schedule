@@ -9,7 +9,7 @@ class SparksScheduleSearch:
     """"""
     """ Главный метод для поиска оптимальных расписаний """
 
-    def search(self, prevSchedule=None, mode='part') -> list[WeekScheduleExcelType]:
+    def search(self, prevSchedule: WeekScheduleExcelType = None, mode='part') -> list[WeekScheduleExcelType]:
         if prevSchedule is not None:
             self.__loadPreviousWeekSchedule(prevSchedule)
         minDebatov = float(1e5)
@@ -34,7 +34,7 @@ class SparksScheduleSearch:
                 ghostSchedulesBest[currDebatov] = copy.deepcopy(self._schedule)
                 minDebatov = float(max(ghostSchedulesBest.keys()))
 
-        if self.debug: print()
+        print()
 
         """ Ищем расписание старших """
 

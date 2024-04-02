@@ -10,9 +10,9 @@ class Schedule:
         self.pairDayStart = pairDayStart
 
     " Сначала старшие, потом духи "
-    def getWorkersAtDay(self, day: int) -> tuple[list[int], list[int]]:
-        return ([1] if day in self.vovan else [2],
-                self.ghostOneTime[day - 1]
+    def getWorkersAtDay(self, day: int) -> tuple[int, list[int]]:
+        return (1 if day in self.vovan else 2,
+                [self.ghostOneTime[day - 1]]
                 if day < self.pairDayStart
                 else list(self.ghostPair[day - self.pairDayStart]))
 

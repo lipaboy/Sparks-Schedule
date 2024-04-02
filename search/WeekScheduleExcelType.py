@@ -23,8 +23,8 @@ TruckDistributionType = dict[str, int]
 
 class WeekScheduleExcelType:
     def __init__(self,
-                 employeeCards=None,
-                 trucks=None):
+                 employeeCards: list[EmployeeCard] = None,
+                 trucks: TruckDistributionType = None):
         if trucks is None:
             trucks = []
         if employeeCards is None:
