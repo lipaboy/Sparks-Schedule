@@ -17,7 +17,7 @@ THIN_BORDER = openpyxl.styles.Side(border_style="thin", color="000000")
 MEDIUM_BORDER = openpyxl.styles.Side(border_style="medium", color="000000")
 THICK_BORDER = openpyxl.styles.Side(border_style="thick", color="000000")
 COLOR_HALL = "F9E79F"
-COLOR_TRUCK = 'ABEBC6'
+COLOR_TRUCK = "ABEBC6"
 CHAR_CROSS = '✕' #'✖'
 CHAR_HALL = 'С' #RUS С
 CHAR_HALF_HALL = 'С2' #RUS С
@@ -74,7 +74,7 @@ def get_dated_week(mode=0): #it gives dated week, that begin next monday
 def output_pool_of_schedule_to_excel(filenamePoolTimetable, searchMode="fast"):# "fast", "part", "full"
     #--Init
     sparks = SparksScheduleSearch()
-    timeTable = sparks.search(mode=searchMode) #'fast', 'part', 'full'
+    timeTable = sparks.search(get_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE) ,mode=searchMode) #'fast', 'part', 'full'
     wb = openpyxl.Workbook()
     sheet = wb.worksheets[0]
     sheet.title = "Выбор расписания"
@@ -131,7 +131,6 @@ def init_schedule_data_base(filenameSceduleDataBase):
     try:
         openpyxl.load_workbook(filename = filenameSceduleDataBase)
     except:
-        newFile = True
         pass
     else:
         return None
@@ -221,19 +220,6 @@ def init_schedule_data_base(filenameSceduleDataBase):
             columnCursor += 1
         sheet.cell(row=startingPointRow + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER)
     #--
-    # #Init Truck
-    # wbSceduleDataBase.create_sheet('Тачки')
-    # sheet = wbSceduleDataBase.worksheets[2]
-    # columnCursor = 1
-    # sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
-    # formatting_cell(sheet, 1, columnCursor, "Имя", 14, "Times New Roman", True, False, "center", "center")
-    # sheet.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=MEDIUM_BORDER, bottom=THICK_BORDER)
-    # columnCursor = 2
-    # sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
-    # formatting_cell(sheet, 1, columnCursor, "Кол-во Т", 14, "Times New Roman", True, False, "center", "center")
-    # sheet.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
-    # #--
-
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\n\tFile '{filenameSceduleDataBase}' was created!")
 
@@ -388,7 +374,7 @@ def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#T
         else:
             print(ERROR_STR_HEAD + "! (get_schedule_data_base)\n\t\tOut of range!!!") #it gives the last schedule in DB
         return None
-    print(f"\n\tTable's selected number: {selectedNumber}")
+    # print(f"\n\tTable's selected number: {selectedNumber}")
     #--
     #Init tables parameters
     tableWidth = 1 + 7 + SPACE_BETWEEN_TABLES  # +1 - begin from 1; 7 - week length; +1 - space between tables
@@ -447,8 +433,8 @@ def check_full(searchMode="fast"):
     check_output_and_update_schedule(searchMode) # "fast", "part", "full"
     update_schedule_data_base_staff(FILENAME_SCHEDULE_DATA_BASE)
     # update_schedule_data_base_truck(FILENAME_SCHEDULE_DATA_BASE)
-    check_get_schdedule()
+    # check_get_schdedule()
 
 if __name__ == "__main__":
-    # check_full("fast")
-    check_get_schdedule(1)
+    check_full("fast")
+    # check_get_schdedule(1)
