@@ -6,8 +6,8 @@ from search.WeekScheduleExcelType import ShiftType
 from search.WeekScheduleExcelType import EmployeeCard
 from search.WeekScheduleExcelType import WeekScheduleExcelType
 
-FILENAME_POOL_TIMETABLE = "../PoolTimetable.xlsx"
-FILENAME_SCHEDULE_DATA_BASE = "../ScheduleDataBase.xlsx"
+FILENAME_POOL_TIMETABLE = "PoolTimetable.xlsx"
+FILENAME_SCHEDULE_DATA_BASE = "ScheduleDataBase.xlsx"
 WEEK_LENGTH = 7
 SPACE_BETWEEN_TABLES = 1
 NUMBER_OF_TABLES_IN_LINE = 3
@@ -29,7 +29,7 @@ def formatting_cell(sheet, row, column, value, fontSize, fontName, fontBold, fon
     sheet.cell(row=row, column=column).font = openpyxl.styles.Font(size=fontSize, name=fontName, bold=fontBold, italic=fontItalic)
     sheet.cell(row=row, column=column).alignment = openpyxl.styles.Alignment(horizontal=alignmentHorizontal, vertical=alignmentVertical)
 
-def get_dated_week(mode=0): #it gives dated week, that begin next monday
+def get_dated_week(mode=0, currentDay: datetime.date = datetime.date.today()): #it gives dated week, that begin next monday
     if mode == 0:
         date_1 = datetime.date(2024, 2, 29)
         date_2 = datetime.date(2024, 2, 28)
@@ -47,7 +47,7 @@ def get_dated_week(mode=0): #it gives dated week, that begin next monday
         10: 'Окт.',
         11: 'Нояб.',
         12: 'Дек.'}
-        current_date = datetime.date.today()  # current_date = datetime.date(2024, 11, 14)
+        current_date = currentDay  # current_date = datetime.date(2024, 11, 14)
         current_date += (WEEK_LENGTH-current_date.weekday()) * delta_day
         datedWeek = list()
         for i in range(WEEK_LENGTH):
@@ -71,8 +71,10 @@ def get_dated_week(mode=0): #it gives dated week, that begin next monday
         print(ERROR_STR_HEAD + "! (get_dated_week)\n\t\tThe wrong mode!")
         return None
 
-def output_pool_of_schedule_to_excel(filenamePoolTimetable, searchMode="fast"):# "fast", "part", "full"
+def output_pool_of_schedule_to_excel(filenamePoolTimetable, searchMode="fast",
+                                     currentDay: datetime.date = datetime.date.today()):# "fast", "part", "full"
     #--Init
+    init_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE)
     sparks = SparksScheduleSearch()
     timeTable = sparks.search(get_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE) ,mode=searchMode) #'fast', 'part', 'full'
     wb = openpyxl.Workbook()
@@ -96,7 +98,7 @@ def output_pool_of_schedule_to_excel(filenamePoolTimetable, searchMode="fast"):#
                 formatting_cell(sheet, row, column, CHAR_CROSS, 14, "Times New Roman", False, False, "center", "center")
         #--
         #--Creating of header of timetable
-        datedWeek = get_dated_week()
+        datedWeek = get_dated_week(currentDay=currentDay)
         for day in range(1, WEEK_LENGTH + 1):
             sheet.cell(row=startingPointRow, column=startingPointColumn+day).border = openpyxl.styles.Border(left=THICK_BORDER, right=THICK_BORDER, top=THICK_BORDER, bottom=THICK_BORDER)
             formatting_cell(sheet, startingPointRow, startingPointColumn+day, datedWeek[day-1], 12, "Times New Roman", True, False, "center", "center")

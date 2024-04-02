@@ -16,7 +16,7 @@ if __name__ == "__main__":
     sparks.favor.print(sparks.favor.fromExcel(results[11]))
 
     sparks.debug = True
-    # results = sparks.search(prevSchedule=results[11])
+    results = sparks.search(prevSchedule=results[11])
     # sparks.favor.print(sparks.favor.fromExcel(results[0]))
 
     print(f"Время работы: {time.time() - _startMeasure:.2f}s")

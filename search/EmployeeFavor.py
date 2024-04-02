@@ -4,6 +4,24 @@ from search.WeekScheduleExcelType import WeekScheduleExcelType, EmployeeCard, Tr
 
 class EmployeeFavor:
     def __init__(self):
+        ""
+
+        """ TODO: 
+            Гениальная идея рефакторинга: создать список всех (пока не удалять раздельные бдшки сотрудников)
+            Вована с любой перевести на 6, 7 
+        """
+
+        self.namesDB = {
+            'Даша': 1,
+            'Маша': 2,
+            'Саша': 3,
+            'Лада': 4,
+            'Артур': 5,
+            'Вован': 6,
+            'Люба': 7,
+        }
+
+        "База духов"
         self.ghostNames = {
             'Даша': 1,
             'Маша': 2,
@@ -11,14 +29,16 @@ class EmployeeFavor:
             'Лада': 4,
             'Артур': 5
         }
-        self.ghostNamesById = {v: k for k, v in self.ghostNames.items()}
+        self._ghostNamesById = {v: k for k, v in self.ghostNames.items()}
 
+        "База старших"
         self.elderNames = {
             'Вован': 1,
             'Люба': 2
         }
-        self.elderNamesById = {v: k for k, v in self.elderNames.items()}
+        self._elderNamesById = {v: k for k, v in self.elderNames.items()}
 
+        " Распределение тачек "
         self.truckDistribution = {
             name: 0 for name in (list(self.elderNames.keys()) + list(self.ghostNames.keys()))
         }
@@ -29,6 +49,7 @@ class EmployeeFavor:
             5: 0.5
         }
 
+        " Сколько каждый дух может работать в неделю дней "
         self.ghostLimits = {
             1: 3.5,
             2: 3.5,
@@ -36,6 +57,7 @@ class EmployeeFavor:
             4: 3,
             5: 1
         }
+        " Нежелательные дни духов "
         self.undesirableGhostDays = {
             1: [1, 2],
             2: [3, 5, 6],
@@ -48,6 +70,7 @@ class EmployeeFavor:
             1: 4,
             2: 3,
         }
+        " Нежелательные дни старших "
         self.undesirableElderDays = {
             1: [1, 4],
             2: [7],
@@ -59,12 +82,12 @@ class EmployeeFavor:
         self._shiftDayLen = [self.partTimeDays.get(i)
                            if i in self.partTimeDays else 1.0 for i in self._week]
 
-        self._nameMaxLen = 6
+        self._nameStringMaxLen = 6
 
     def __parseWhoUnderTruck(self, schedule: Schedule, trucks: TruckDistributionType, day: int) -> str:
         elderId, ghostIdList = schedule.getWorkersAtDay(day)
-        elder = self.elderNamesById[elderId]
-        names = [elder] + [self.ghostNamesById[w] for w in ghostIdList]
+        elder = self._elderNamesById[elderId]
+        names = [elder] + [self._ghostNamesById[w] for w in ghostIdList]
         worker = min([(n, trucks[n]) for n in names], key=lambda x: x[1])
         return worker[0]
 
@@ -87,11 +110,11 @@ class EmployeeFavor:
         for day in self._week:
             if day in schedule.vovan:
                 vovanCard.Shifts.append(
-                    (day, 1.0, self.__getNameForTruck(self.elderNamesById[1], weekTrucks, day))
+                    (day, 1.0, self.__getNameForTruck(self._elderNamesById[1], weekTrucks, day))
                 )
             else:
                 lubaCard.Shifts.append(
-                    (day, 1.0, self.__getNameForTruck(self.elderNamesById[2], weekTrucks, day))
+                    (day, 1.0, self.__getNameForTruck(self._elderNamesById[2], weekTrucks, day))
                 )
 
         employeeCards.append(vovanCard)
@@ -152,7 +175,7 @@ class EmployeeFavor:
         return schedule
 
     def __printWeek(self):
-        print(''.rjust(self._nameMaxLen + 1), end='')
+        print(''.rjust(self._nameStringMaxLen + 1), end='')
         for day in ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']:
             print(day.rjust(4), end='')
         print()
@@ -162,7 +185,7 @@ class EmployeeFavor:
         elders = schedule.getElders()
 
         for name, elderId in self.elderNames.items():
-            print(name.rjust(self._nameMaxLen) + ':', end='')
+            print(name.rjust(self._nameStringMaxLen) + ':', end='')
             for day in self._week:
                 turnName = 'C'
                 if day in self.undesirableElderDays[elderId]:
@@ -175,11 +198,11 @@ class EmployeeFavor:
 
         self.printElder(schedule)
 
-        print('---------------------'.rjust((self._nameMaxLen + 1 + 7 * 4) // 5 * 4))
+        print('---------------------'.rjust((self._nameStringMaxLen + 1 + 7 * 4) // 5 * 4))
 
         oneTimeWeek = [i for i in range(1, self.pairDayStart())]
         for [name, ghostId] in self.ghostNames.items():
-            print(name.rjust(self._nameMaxLen) + ':', end='')
+            print(name.rjust(self._nameStringMaxLen) + ':', end='')
             for day in week:
                 if day in oneTimeWeek:
                     turnName = 'C'

@@ -9,7 +9,12 @@ class SparksScheduleSearch:
     """"""
     """ Главный метод для поиска оптимальных расписаний """
 
-    def search(self, prevSchedule: WeekScheduleExcelType = None, mode='part') -> list[WeekScheduleExcelType]:
+    def search(self,
+               undesirableDays: dict[str, list[int]] = None,
+               prevSchedule: WeekScheduleExcelType = None,
+               mode='part') -> list[WeekScheduleExcelType]:
+        if undesirableDays is None:
+            undesirableDays = None
         if prevSchedule is not None:
             self.__loadPreviousWeekSchedule(prevSchedule)
         minDebatov = float(1e5)
