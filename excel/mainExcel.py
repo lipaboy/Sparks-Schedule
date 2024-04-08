@@ -6,8 +6,8 @@ from search.WeekScheduleExcelType import ShiftType
 from search.WeekScheduleExcelType import EmployeeCard
 from search.WeekScheduleExcelType import WeekScheduleExcelType
 
-FILENAME_POOL_TIMETABLE = "PoolTimetable.xlsx"
 FILENAME_SCHEDULE_DATA_BASE = "ScheduleDataBase.xlsx"
+FILENAME_POOL_TIMETABLE = "PoolTimetable.xlsx"
 WEEK_LENGTH = 7
 SPACE_BETWEEN_TABLES = 1
 NUMBER_OF_TABLES_IN_LINE = 3
@@ -47,8 +47,9 @@ def get_dated_week(mode=0, currentDay: datetime.date = datetime.date.today()): #
         10: 'Окт.',
         11: 'Нояб.',
         12: 'Дек.'}
-        current_date = currentDay  # current_date = datetime.date(2024, 11, 14)
-        current_date += (WEEK_LENGTH-current_date.weekday()) * delta_day
+        current_date = currentDay #current_date = datetime.date(2024, 11, 14)
+        current_date -= current_date.weekday() * delta_day #It gives current week that begin on Monday
+        # current_date += (WEEK_LENGTH-current_date.weekday()) * delta_day #It gives next week that begin on Monday
         datedWeek = list()
         for i in range(WEEK_LENGTH):
             datedWeek.append(f"{current_date.day} {months[current_date.month]}")
@@ -70,64 +71,6 @@ def get_dated_week(mode=0, currentDay: datetime.date = datetime.date.today()): #
     else:
         print(ERROR_STR_HEAD + "! (get_dated_week)\n\t\tThe wrong mode!")
         return None
-
-def output_pool_of_schedule_to_excel(filenamePoolTimetable, searchMode="fast",
-                                     currentDay: datetime.date = datetime.date.today()):# "fast", "part", "full"
-    #--Init
-    init_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE)
-    sparks = SparksScheduleSearch()
-    timeTable = sparks.search(get_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE) ,mode=searchMode) #'fast', 'part', 'full'
-    wb = openpyxl.Workbook()
-    sheet = wb.worksheets[0]
-    sheet.title = "Выбор расписания"
-    tableWidth = 1 + WEEK_LENGTH + SPACE_BETWEEN_TABLES  # +1 - begin from 1; +1 - space between tables
-    tableHeight = 1 + len(timeTable[0].EmployeeCards) + SPACE_BETWEEN_TABLES
-    #--
-    #--Fill table all timeTables
-    for numOfTable in range(len(timeTable)):
-        startingPointColumn = 1 + ((numOfTable % NUMBER_OF_TABLES_IN_LINE) * tableWidth)
-        startingPointRow = 1 + ((numOfTable // NUMBER_OF_TABLES_IN_LINE) * tableHeight)
-        sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn)].width = TABLE_0_COLUMN_WIDTH
-        for i in range(1, WEEK_LENGTH + 1):
-            sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn+i)].width = TABLE_0_COLUMN_WIDTH#15 #if [day, dd mmmm]
-        formatting_cell(sheet, startingPointRow, startingPointColumn, f"№ {numOfTable + 1}", 14, "Times New Roman", False, False, "center", "center")
-        #--Formatting and x-filling the timetable
-        for row in range(startingPointRow+1, len(timeTable[numOfTable].EmployeeCards)+startingPointRow+1):
-            for column in range(startingPointColumn+1, WEEK_LENGTH + startingPointColumn + 1):
-                sheet.cell(row=row, column=column).border = openpyxl.styles.Border(right=THIN_BORDER,bottom=THIN_BORDER)
-                formatting_cell(sheet, row, column, CHAR_CROSS, 14, "Times New Roman", False, False, "center", "center")
-        #--
-        #--Creating of header of timetable
-        datedWeek = get_dated_week(currentDay=currentDay)
-        for day in range(1, WEEK_LENGTH + 1):
-            sheet.cell(row=startingPointRow, column=startingPointColumn+day).border = openpyxl.styles.Border(left=THICK_BORDER, right=THICK_BORDER, top=THICK_BORDER, bottom=THICK_BORDER)
-            formatting_cell(sheet, startingPointRow, startingPointColumn+day, datedWeek[day-1], 12, "Times New Roman", True, False, "center", "center")
-        for numOfStaff in range(len(timeTable[numOfTable].EmployeeCards)):
-            sheet.cell(row=startingPointRow + numOfStaff + 1, column=startingPointColumn).border = openpyxl.styles.Border(left=THICK_BORDER, right=THICK_BORDER, top=THICK_BORDER, bottom=THICK_BORDER)
-            formatting_cell(sheet, startingPointRow + numOfStaff + 1, startingPointColumn, timeTable[numOfTable].EmployeeCards[numOfStaff].Name, 14, "Times New Roman", timeTable[numOfTable].EmployeeCards[numOfStaff].IsElder, True, "right", "center")
-        #--
-        #--Fill data to the timetable
-        typeOfShift = CHAR_CROSS
-        for numOfStaff in range(len(timeTable[numOfTable].EmployeeCards)):  #class EmployeeCard(name: str, isElder: bool, shifts: list[ShiftType])
-            for shift in timeTable[numOfTable].EmployeeCards[numOfStaff].Shifts: #ShiftType = tuple[DayType, ShiftLength, PlaceToWork]
-                if shift[2] == 'Hall':
-                    sheet.cell(row=startingPointRow + numOfStaff + 1, column=startingPointColumn + shift[0]).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor='F9E79F')
-                    if shift[1] == 1:
-                        typeOfShift = CHAR_HALL
-                    else:
-                        typeOfShift = CHAR_HALF_HALL
-                else:
-                    sheet.cell(row=startingPointRow + numOfStaff + 1, column=startingPointColumn + shift[0]).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor='ABEBC6')
-                    typeOfShift = CHAR_TRUCK
-                formatting_cell(sheet, startingPointRow + numOfStaff + 1, startingPointColumn + shift[0], typeOfShift, 14, "Times New Roman", False, False, "center", "center")
-        #--
-    #--
-    #--Close and save excel's file
-    wb.save(filenamePoolTimetable)
-    print(f"\n\tFile '{filenamePoolTimetable}' was created!")
-    #--
-    lengthOfPool = len(timeTable)
-    return lengthOfPool
 
 def init_schedule_data_base(filenameSceduleDataBase):
     try:
@@ -225,6 +168,63 @@ def init_schedule_data_base(filenameSceduleDataBase):
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\n\tFile '{filenameSceduleDataBase}' was created!")
 
+def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast", currentDay: datetime.date = datetime.date.today()):# "fast", "part", "full"
+    #--Init
+    init_schedule_data_base(filenameSceduleDataBase)
+    sparks = SparksScheduleSearch()
+    timeTable = sparks.search(get_schedule_data_base(filenameSceduleDataBase) ,mode=searchMode) #'fast', 'part', 'full'
+    wb = openpyxl.Workbook()
+    sheet = wb.worksheets[0]
+    sheet.title = "Выбор расписания"
+    tableWidth = 1 + WEEK_LENGTH + SPACE_BETWEEN_TABLES  # +1 - begin from 1; +1 - space between tables
+    tableHeight = 1 + len(timeTable[0].EmployeeCards) + SPACE_BETWEEN_TABLES
+    #--
+    #--Fill table all timeTables
+    for numOfTable in range(len(timeTable)):
+        startingPointColumn = 1 + ((numOfTable % NUMBER_OF_TABLES_IN_LINE) * tableWidth)
+        startingPointRow = 1 + ((numOfTable // NUMBER_OF_TABLES_IN_LINE) * tableHeight)
+        sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn)].width = TABLE_0_COLUMN_WIDTH
+        for i in range(1, WEEK_LENGTH + 1):
+            sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn+i)].width = TABLE_0_COLUMN_WIDTH#15 #if [day, dd mmmm]
+        formatting_cell(sheet, startingPointRow, startingPointColumn, f"№ {numOfTable + 1}", 14, "Times New Roman", False, False, "center", "center")
+        #--Formatting and x-filling the timetable
+        for row in range(startingPointRow+1, len(timeTable[numOfTable].EmployeeCards)+startingPointRow+1):
+            for column in range(startingPointColumn+1, WEEK_LENGTH + startingPointColumn + 1):
+                sheet.cell(row=row, column=column).border = openpyxl.styles.Border(right=THIN_BORDER,bottom=THIN_BORDER)
+                formatting_cell(sheet, row, column, CHAR_CROSS, 14, "Times New Roman", False, False, "center", "center")
+        #--
+        #--Creating of header of timetable
+        datedWeek = get_dated_week(currentDay=currentDay)
+        for day in range(1, WEEK_LENGTH + 1):
+            sheet.cell(row=startingPointRow, column=startingPointColumn+day).border = openpyxl.styles.Border(left=THICK_BORDER, right=THICK_BORDER, top=THICK_BORDER, bottom=THICK_BORDER)
+            formatting_cell(sheet, startingPointRow, startingPointColumn+day, datedWeek[day-1], 12, "Times New Roman", True, False, "center", "center")
+        for numOfStaff in range(len(timeTable[numOfTable].EmployeeCards)):
+            sheet.cell(row=startingPointRow + numOfStaff + 1, column=startingPointColumn).border = openpyxl.styles.Border(left=THICK_BORDER, right=THICK_BORDER, top=THICK_BORDER, bottom=THICK_BORDER)
+            formatting_cell(sheet, startingPointRow + numOfStaff + 1, startingPointColumn, timeTable[numOfTable].EmployeeCards[numOfStaff].Name, 14, "Times New Roman", timeTable[numOfTable].EmployeeCards[numOfStaff].IsElder, True, "right", "center")
+        #--
+        #--Fill data to the timetable
+        typeOfShift = CHAR_CROSS
+        for numOfStaff in range(len(timeTable[numOfTable].EmployeeCards)):  #class EmployeeCard(name: str, isElder: bool, shifts: list[ShiftType])
+            for shift in timeTable[numOfTable].EmployeeCards[numOfStaff].Shifts: #ShiftType = tuple[DayType, ShiftLength, PlaceToWork]
+                if shift[2] == 'Hall':
+                    sheet.cell(row=startingPointRow + numOfStaff + 1, column=startingPointColumn + shift[0]).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor='F9E79F')
+                    if shift[1] == 1:
+                        typeOfShift = CHAR_HALL
+                    else:
+                        typeOfShift = CHAR_HALF_HALL
+                else:
+                    sheet.cell(row=startingPointRow + numOfStaff + 1, column=startingPointColumn + shift[0]).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor='ABEBC6')
+                    typeOfShift = CHAR_TRUCK
+                formatting_cell(sheet, startingPointRow + numOfStaff + 1, startingPointColumn + shift[0], typeOfShift, 14, "Times New Roman", False, False, "center", "center")
+        #--
+    #--
+    #--Close and save excel's file
+    wb.save(filenamePoolTimetable)
+    print(f"\n\tFile '{filenamePoolTimetable}' was created!")
+    #--
+    lengthOfPool = len(timeTable)
+    return lengthOfPool
+
 def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, numChoosingTimetable):
     #Init
     wbSceduleDataBase = openpyxl.load_workbook(filename = filenameSceduleDataBase)
@@ -320,46 +320,8 @@ def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None
         sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn+1).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
         sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn+2).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
         i += 1
-    wbSceduleDataBase.save(FILENAME_SCHEDULE_DATA_BASE)
+    wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\nStaff was updated on Schedule Data Base '{filenameSceduleDataBase}'")
-
-def update_schedule_data_base_truck(filenameSceduleDataBase, poolOfStaffAndTruck=None, ):#todo DESTROY IT
-    # Check the 2nd parameter
-    if poolOfStaffAndTruck != None:
-        print(f"{ERROR_STR_HEAD}! (update_schedule_data_base_truck)\n\t\tType of data wasn't selected")  # Todo Add update from array of data
-        return None
-    # --
-    wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
-    sheetStaff = wbSceduleDataBase.worksheets[1]
-    sheetTruck = wbSceduleDataBase.worksheets[2]
-    # Clear sheet of staff
-    sheetTruck.delete_cols(1)
-    sheetTruck.delete_cols(1)
-    columnCursor = 1
-    sheetTruck.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
-    formatting_cell(sheetTruck, 1, columnCursor, "Имя", 14, "Times New Roman", True, False, "center", "center")
-    sheetTruck.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=MEDIUM_BORDER, bottom=THICK_BORDER)
-    columnCursor = 2
-    sheetTruck.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
-    formatting_cell(sheetTruck, 1, columnCursor, "Кол-во Т", 14, "Times New Roman", True, False, "center", "center")
-    sheetTruck.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
-    #--
-    staffPointRow = 2
-    staffPointColumn = 1
-    i = 0
-    while sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn).value != None:
-        formatting_cell(sheetTruck, staffPointRow + i, staffPointColumn, sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn).value,
-                        14, "Times New Roman", sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn).font.b, True, "right", "center")
-        formatting_cell(sheetTruck, staffPointRow + i, staffPointColumn+1, 0,
-                        14, "Times New Roman", False, False, "center", "center")
-        sheetTruck.cell(row=staffPointRow + i, column=staffPointColumn).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
-        sheetTruck.cell(row=staffPointRow + i, column=staffPointColumn+1).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
-        i += 1
-    if i == 0:
-        print(ERROR_STR_HEAD + "! (update_schedule_data_base_truck)\n\t\tList of staff is empty!")  # it gives the last schedule in DB
-        return None
-    wbSceduleDataBase.save(FILENAME_SCHEDULE_DATA_BASE)
-    print(f"\nTruck was updated on Schedule Data Base '{filenameSceduleDataBase}'")
 
 def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#TODO IsElder. How get status from table? Take it from Personal's sheet
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
@@ -407,8 +369,43 @@ def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#T
     #--
     return outputSchedule
 
-def check_output_and_update_schedule(searchMode="fast"):#TEST FUNCTION!!!
-    lengthOfPool = output_pool_of_schedule_to_excel(FILENAME_POOL_TIMETABLE, searchMode)  # "fast", "part", "full"
+def get_schedule_data_base_truck(filenameSceduleDataBase):
+    wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
+    sheet = wbSceduleDataBase.worksheets[1]
+    data = WeekScheduleExcelType()
+    startingPointColumn = 1
+    startingPointRow = 2
+    stepToTruck = 2
+    j = 0
+    while sheet.cell(row=startingPointRow+j, column=startingPointColumn).value != None:
+        if sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToTruck).value == None:
+            data.Trucks.append(0)
+        else:
+            data.Trucks.append(sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToTruck).value)
+        j += 1
+    return data
+
+def get_schedule_data_base_undesirable_days(filenameSceduleDataBase):
+    wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
+    sheet = wbSceduleDataBase.worksheets[1]
+    # data = WeekScheduleExcelType()
+    data = dict()
+    startingPointColumn = 1
+    startingPointRow = 2
+    stepToUndesirableDays = 4
+    j = 0
+    while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
+        undesirableDays = list()
+        name = str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)
+        for i in range(WEEK_LENGTH):
+            if sheet.cell(row=startingPointRow + j, column=startingPointColumn+stepToUndesirableDays+i).value == CHAR_CROSS:
+                undesirableDays.append(i+1)
+        data[name] = undesirableDays
+        j += 1
+    return data
+
+def check_output_and_update_schedule(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"):#TEST FUNCTION!!!
+    lengthOfPool = output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimetable, searchMode)  # "fast", "part", "full"
     while True:
         numChoosingTimetable = input("\nEnter number of choosing schedule: ")
         try:
@@ -420,23 +417,27 @@ def check_output_and_update_schedule(searchMode="fast"):#TEST FUNCTION!!!
                 print(f"{ERROR_STR_HEAD} VALUE! (check_output_and_update_schedule)\n\t\tPlease, enter value from 1 to {lengthOfPool}.")
             else:
                 break
-    update_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE, FILENAME_POOL_TIMETABLE, numChoosingTimetable)
+    update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, numChoosingTimetable)
 
-def check_get_schdedule(numOfSelectedSchedule=-1):
-    schedule = get_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE, numOfSelectedSchedule)
+def check_get_schdedule(filenameSceduleDataBase, numOfSelectedSchedule=-1):
+    schedule = get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule)
     if schedule != None:
         for i in range(len(schedule.EmployeeCards)):
             print(schedule.EmployeeCards[i].Name, schedule.EmployeeCards[i].IsElder, schedule.EmployeeCards[i].Shifts)
     else:
         print(ERROR_STR_HEAD + "! (check_get_schdedule)\n\t\tEmpty data base!")
 
-def check_full(searchMode="fast"):
-    init_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE)
-    check_output_and_update_schedule(searchMode) # "fast", "part", "full"
-    update_schedule_data_base_staff(FILENAME_SCHEDULE_DATA_BASE)
-    # update_schedule_data_base_truck(FILENAME_SCHEDULE_DATA_BASE)
-    # check_get_schdedule()
+def check_full(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"):
+    check_output_and_update_schedule(filenameSceduleDataBase, filenamePoolTimetable, searchMode) # "fast", "part", "full"
+    update_schedule_data_base_staff(filenameSceduleDataBase)
+    # check_get_schdedule(filenameSceduleDataBase)
 
 if __name__ == "__main__":
-    check_full("fast")
-    # check_get_schdedule(1)
+    localFilenameScheduleDataBase = "../" + FILENAME_SCHEDULE_DATA_BASE
+    localFilenamePoolTimetable = "../" + FILENAME_POOL_TIMETABLE
+    # check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
+    print(get_dated_week())
+    data = get_schedule_data_base_truck(localFilenameScheduleDataBase)
+    print(data.Trucks)
+    data2 = get_schedule_data_base_undesirable_days(localFilenameScheduleDataBase)
+    print(data2)

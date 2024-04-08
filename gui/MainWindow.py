@@ -68,5 +68,8 @@ class MainWindow:
 
 
 if __name__ == "__main__":
+    import os
+    cwd = os.getcwd()
+    print(cwd)
     window = MainWindow()
     window.mainloop()
