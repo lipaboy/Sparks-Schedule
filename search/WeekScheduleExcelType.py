@@ -25,8 +25,6 @@ class WeekScheduleExcelType:
     def __init__(self,
                  employeeCards: list[EmployeeCard] = None,
                  trucks: TruckDistributionType = None):
-        if trucks is None:
-            trucks = []
         if employeeCards is None:
             employeeCards = []
         self.EmployeeCards = employeeCards

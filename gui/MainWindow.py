@@ -11,7 +11,7 @@ class MainWindow:
         self.window = tk.Tk()
 
         # Set Height and Width of Window
-        self.window.geometry("350x150")
+        self.window.geometry("350x250")
 
         # Set the Title according to desire
         self.window.title("Расписание Спаркса")

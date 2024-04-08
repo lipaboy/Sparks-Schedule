@@ -3,7 +3,7 @@ from search.NextSchedule import *
 
 class Schedule:
     def __init__(self, pairDayStart: int):
-        self.vovan = [0 for _ in range(7)]
+        self.vovan = []
         self.ghostOneTime = [0 for _ in range(1, pairDayStart)]
         self.ghostPair = [(0, 0) for _ in range(pairDayStart, 7 + 1)]
         self.ghostPairAlgo = self.__nextGhostPair_vPart

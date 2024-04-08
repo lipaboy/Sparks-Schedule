@@ -76,7 +76,8 @@ def output_pool_of_schedule_to_excel(filenamePoolTimetable, searchMode="fast",
     #--Init
     init_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE)
     sparks = SparksScheduleSearch()
-    timeTable = sparks.search(get_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE) ,mode=searchMode) #'fast', 'part', 'full'
+    timeTable = sparks.search(prevSchedule=get_schedule_data_base(FILENAME_SCHEDULE_DATA_BASE),
+                              mode=searchMode) #'fast', 'part', 'full'
     wb = openpyxl.Workbook()
     sheet = wb.worksheets[0]
     sheet.title = "Выбор расписания"

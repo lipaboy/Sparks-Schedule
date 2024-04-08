@@ -6,20 +6,21 @@ from search.EmployeeFavor import EmployeeFavor, WeekScheduleExcelType
 
 
 class SparksScheduleSearch:
-    """"""
-    """ Главный метод для поиска оптимальных расписаний """
-
     def search(self,
                undesirableDays: dict[str, list[int]] = None,
                prevSchedule: WeekScheduleExcelType = None,
                mode='part') -> list[WeekScheduleExcelType]:
-        if undesirableDays is None:
-            undesirableDays = None
+
+        if undesirableDays is not None:
+            self._favor.loadUndesirables(undesirableDays)
         if prevSchedule is not None:
             self.__loadPreviousWeekSchedule(prevSchedule)
+            if prevSchedule.Trucks is not None:
+                self._favor.truckDistribution = prevSchedule.Trucks
+
         minDebatov = float(1e5)
         ghostBestCount = 6
-        ghostSchedulesBest = {minDebatov + i * 1.0: Schedule(self.favor.pairDayStart())
+        ghostSchedulesBest = {minDebatov + i * 1.0: Schedule(self._favor.pairDayStart())
                               for i in range(ghostBestCount)}
         iterationId = 0
         self._schedule.setMode(mode)
@@ -45,7 +46,7 @@ class SparksScheduleSearch:
 
         minDebatov = float(1e5)
         elderBestCount = 2
-        elderSchedulesBest = {minDebatov + i * 1.0: Schedule(self.favor.pairDayStart())
+        elderSchedulesBest = {minDebatov + i * 1.0: Schedule(self._favor.pairDayStart())
                               for i in range(elderBestCount)}
         for _ in self._schedule.elderTraversalGen():
             currDebatov = self.calcElderDebatov(self._schedule)
@@ -76,10 +77,13 @@ class SparksScheduleSearch:
             for s in schedulesForPrint:
                 print(f"id: {i}")
                 i -= 1
-                self.favor.print(s)
+                self._favor.print(s)
                 print()
 
-        return [self.favor.toExcel(s) for s in commonSchedules]
+        return [self._favor.toExcel(s) for s in commonSchedules]
+    """"""
+
+    """ Главный метод для поиска оптимальных расписаний """
 
     """ Посчитать количество дебатов для конкретного расписания старших """
     def calcElderDebatov(self,
@@ -108,7 +112,7 @@ class SparksScheduleSearch:
             prevDay = day
 
             """ Undesirable Days """
-            if day in self.favor.undesirableElderDays[1]:
+            if day in self._favor.undesirableElderDays[1]:
                 undesirableDaysCount += 1
 
         prevDay = -1
@@ -124,7 +128,7 @@ class SparksScheduleSearch:
             prevDay = day
 
             """ Undesirable Days """
-            if day in self.favor.undesirableElderDays[2]:
+            if day in self._favor.undesirableElderDays[2]:
                 undesirableDaysCount += 1
 
         """ The Longest Turn Repeats """
@@ -142,7 +146,7 @@ class SparksScheduleSearch:
         currDebatov = 0.0
 
         """ Turn Count By Ghost """
-        shiftCountDict = [0.0 for _ in self.favor.ghostNames]
+        shiftCountDict = [0.0 for _ in self._favor.ghostNames]
 
         """ The Longest Turn Repeats """
         # вещественный, потому что длина смены может быть не целой величиной
@@ -167,7 +171,7 @@ class SparksScheduleSearch:
             ghostIdRepeat = ghostId
 
             """ Undesirable Days """
-            if day in self.favor.undesirableGhostDays[ghostId]:
+            if day in self._favor.undesirableGhostDays[ghostId]:
                 undesirableDaysCount += 1
 
         """ The Longest Turn Repeats """
@@ -199,15 +203,15 @@ class SparksScheduleSearch:
                 shiftRepeats = self.getShiftLenBy(day, secondGhostIdRepeat != p[0])
 
             """ Undesirable Days """
-            if day in self.favor.undesirableGhostDays[p[0]]:
+            if day in self._favor.undesirableGhostDays[p[0]]:
                 undesirableDaysCount += self.getShiftLenBy(day, True)
-            if day in self.favor.undesirableGhostDays[p[1]]:
+            if day in self._favor.undesirableGhostDays[p[1]]:
                 undesirableDaysCount += self.getShiftLenBy(day, False)
 
         """ Turn Count By Ghost """
         # смотрим разницу между желаемым количеством смен для каждого духа
         # и текущим рассматриваемым расписанием
-        for ghostId, limit in self.favor.ghostLimits.items():
+        for ghostId, limit in self._favor.ghostLimits.items():
             currDebatov += self.differInShiftsCoef * abs(shiftCountDict[ghostId - 1] - limit)
 
         """ The Longest Turn Repeats """
@@ -222,9 +226,11 @@ class SparksScheduleSearch:
 
     def __loadPreviousWeekSchedule(self,
                                    excelSchedule: WeekScheduleExcelType):
-        prevSchedule = self.favor.fromExcel(excelSchedule)
+        # todo: добавить проверку для старших
+
+        prevSchedule = self._favor.fromExcel(excelSchedule)
         if self.debug:
-            self.favor.print(prevSchedule)
+            self._favor.print(prevSchedule)
 
         """ The Longest Turn Repeats """
         shiftRepeats = self._shiftLenByDay[-1]
@@ -259,8 +265,8 @@ class SparksScheduleSearch:
         self._prevWeekShiftRepeat = dict[int, float]()
 
     def __init__(self):
-        self.favor = EmployeeFavor()
-        self._schedule = Schedule(self.favor.pairDayStart())
+        self._favor = EmployeeFavor()
+        self._schedule = Schedule(self._favor.pairDayStart())
 
         """ Коэффициент дебатов для непрерывный череды смен"""
         self.shiftRepeatCoef = 10
@@ -274,8 +280,8 @@ class SparksScheduleSearch:
         self._week = range(1, 7 + 1)
         self._oneTimeWeek = range(1, len(self._schedule.ghostOneTime) + 1)
         self._pairWeek = range(len(self._schedule.ghostOneTime) + 1, 7 + 1)
-        self._shiftLenByDay = [self.favor.partTimeDays.get(i)
-                               if i in self.favor.partTimeDays else 1.0 for i in self._week]
+        self._shiftLenByDay = [self._favor.partTimeDays.get(i)
+                               if i in self._favor.partTimeDays else 1.0 for i in self._week]
 
         self.debug = False
 
