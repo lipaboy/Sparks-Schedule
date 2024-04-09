@@ -27,6 +27,8 @@ class WeekScheduleExcelType:
                  trucks: TruckDistributionType = None):
         if employeeCards is None:
             employeeCards = []
+        if trucks is None:
+            trucks = {}
         self.EmployeeCards = employeeCards
         # employee name -> truck count
         self.Trucks = trucks

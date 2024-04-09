@@ -172,7 +172,7 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
     #--Init
     init_schedule_data_base(filenameSceduleDataBase)
     sparks = SparksScheduleSearch()
-    timeTable = sparks.search(prevSchedule=get_schedule_data_base(filenameSceduleDataBase), mode=searchMode) #'fast', 'part', 'full'
+    timeTable = sparks.search(undesirableDays=get_schedule_data_base_undesirable_days(filenameSceduleDataBase), prevSchedule=get_schedule_data_base(filenameSceduleDataBase), mode=searchMode) #'fast', 'part', 'full'
     wb = openpyxl.Workbook()
     sheet = wb.worksheets[0]
     sheet.title = "Выбор расписания"
@@ -225,7 +225,7 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
     lengthOfPool = len(timeTable)
     return lengthOfPool
 
-def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, numChoosingTimetable):
+def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, numChoosingTimetable):#TODO add update for trucks
     #Init
     wbSceduleDataBase = openpyxl.load_workbook(filename = filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[0]
@@ -369,7 +369,7 @@ def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#T
     #--
     return outputSchedule
 
-def get_schedule_data_base_truck(filenameSceduleDataBase):
+def get_schedule_data_base_staff_and_truck(filenameSceduleDataBase):
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[1]
     data = WeekScheduleExcelType()
@@ -378,17 +378,18 @@ def get_schedule_data_base_truck(filenameSceduleDataBase):
     stepToTruck = 2
     j = 0
     while sheet.cell(row=startingPointRow+j, column=startingPointColumn).value != None:
+        trucks = list()
         if sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToTruck).value == None:
-            data.Trucks.append(0)
+            trucks.append(0)
         else:
-            data.Trucks.append(sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToTruck).value)
+            trucks.append(sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToTruck).value)
+        data.Trucks[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = trucks
         j += 1
     return data
 
 def get_schedule_data_base_undesirable_days(filenameSceduleDataBase):
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[1]
-    # data = WeekScheduleExcelType()
     data = dict()
     startingPointColumn = 1
     startingPointRow = 2
@@ -396,11 +397,10 @@ def get_schedule_data_base_undesirable_days(filenameSceduleDataBase):
     j = 0
     while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
         undesirableDays = list()
-        name = str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)
         for i in range(WEEK_LENGTH):
             if sheet.cell(row=startingPointRow + j, column=startingPointColumn+stepToUndesirableDays+i).value == CHAR_CROSS:
                 undesirableDays.append(i+1)
-        data[name] = undesirableDays
+        data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = undesirableDays
         j += 1
     return data
 
@@ -435,9 +435,4 @@ def check_full(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"
 if __name__ == "__main__":
     localFilenameScheduleDataBase = "../" + FILENAME_SCHEDULE_DATA_BASE
     localFilenamePoolTimetable = "../" + FILENAME_POOL_TIMETABLE
-    # check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
-    print(get_dated_week())
-    data = get_schedule_data_base_truck(localFilenameScheduleDataBase)
-    print(data.Trucks)
-    data2 = get_schedule_data_base_undesirable_days(localFilenameScheduleDataBase)
-    print(data2)
+    check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
