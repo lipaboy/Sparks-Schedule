@@ -1,17 +1,39 @@
-import datetime
+import sys
 import tkinter as tk
 import os
+import subprocess
+
+import psutil
+
 import excel.mainExcel as ExcelCore
 from tkcalendar import Calendar, DateEntry
 from tkinter import ttk
 
+import search.SparksScheduleSearch
+
+
+def closeExcelDocumentProcess(excelFileName: str):
+    processList = psutil.process_iter()
+    for proc in processList:
+        try:
+            if 'excel' in proc.name().lower():
+                # print(proc.name(), proc.pid, proc.cmdline(), proc.open_files())
+                if any(excelFileName in path.path for path in proc.open_files()):
+                    proc.kill()
+        except psutil.AccessDenied:
+            continue
+
+def openExcelDocumentProcess(excelFileName: str):
+    os.system('start EXCEL.exe ' + excelFileName)
+
 
 class MainWindow:
-    def __init__(self):
+    def __init__(self, isDebug=False):
         self.window = tk.Tk()
+        self.isDebug = isDebug
 
         # Set Height and Width of Window
-        self.window.geometry("350x150")
+        self.window.geometry("350x350")
 
         # Set the Title according to desire
         self.window.title("Расписание Спаркса")
@@ -19,48 +41,84 @@ class MainWindow:
         self.makeScheduleButton = tk.Button(text="Сформировать расписание", command=self.makeScheduleRequest)
         self.chooseScheduleButton = tk.Button(text="Выбрать", command=self.chooseScheduleRequest)
         # self.makeScheduleButton.grid(padx=20, pady=20)
+        self.speedLabel = tk.Label(text='')
+        self.speedSlider = ttk.Scale(
+            self.window,
+            from_=1,
+            to=3,
+            orient='horizontal',
+            command=self.__showSlider
+        )
+        self.speedSlider.set(1)
 
-        self.statusLabel = tk.Label(text="Здравствуй, Спаркс!")
+        self.helloLabel = tk.Label(text="Здравствуй, Спаркс!")
+        self.statusLabel = tk.Label(text='')
 
         self.chooseIdLabel = tk.Label(text="Выберете расписание (номер):")
         self.inputField = tk.Entry(fg="yellow", bg="purple", width=15)
 
-        ttk.Label(text='Choose date').pack(padx=10, pady=10)
-        self.cal = DateEntry(width=12, background='darkblue',
-                        foreground='white', borderwidth=2)
-        self.cal.pack(padx=10, pady=10)
-        print(self.cal.get_date())
+        ttk.Label(text='Выберете неделю').pack(padx=10, pady=10)
+        self.calendar = DateEntry(width=12, background='darkblue',
+                                  foreground='white', borderwidth=2)
+        self.calendar.pack(padx=10, pady=10)
+        print(self.calendar.get_date())
 
-        self.statusLabel.pack(expand=True)
+        self.helloLabel.pack(expand=True)
+        self.speedLabel.pack()
+        self.speedSlider.pack()
         self.makeScheduleButton.pack(expand=True)
         # self.inputField.pack(expand=True)
         # self.inputField.pack_forget()
 
-    def chooseScheduleRequest(self):
+    def __getMode(self):
+        return search.SparksScheduleSearch.MODE_LIST[int(self.speedSlider.get()) - 1]
 
-        ExcelCore.update_schedule_data_base(ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
-                                            ExcelCore.FILENAME_POOL_TIMETABLE,
-                                            int(self.inputField.get()))
-        self.chooseIdLabel.pack_forget()
-        self.inputField.pack_forget()
-        self.chooseScheduleButton.pack_forget()
-        self.statusLabel.config(text='Заебись!')
+    def __showSlider(self, event):
+        value = int(self.speedSlider.get())
+        self.speedLabel.config(
+            text=search.SparksScheduleSearch.MODE_LIST[value - 1]
+        )
+
+    def chooseScheduleRequest(self):
+        scheduleNum = self.inputField.get()
+        if scheduleNum.isdigit():
+            ExcelCore.update_schedule_data_base(ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
+                                                ExcelCore.FILENAME_POOL_TIMETABLE,
+                                                int(scheduleNum))
+            if self.isDebug:
+                closeExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
+                openExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
+
+            self.chooseIdLabel.pack_forget()
+            self.inputField.pack_forget()
+            self.chooseScheduleButton.pack_forget()
+            self.helloLabel.config(text='Данные успешно сохранены!')
+            self.helloLabel.pack(expand=True)
+            self.statusLabel.config(text='', fg='#000')
+            self.statusLabel.pack_forget()
+        else:
+            self.statusLabel.config(text='Неверный номер расписания', fg='#f00')
 
     def makeScheduleRequest(self):
         """"""
-        """ TODO: Вызвать функцию поиска расписания для вывода его в эксель"""
-        ExcelCore.output_pool_of_schedule_to_excel(
-            ExcelCore.FILENAME_POOL_TIMETABLE,
-            'fast',
-            # datetime.datetime.strptime(self.cal.get_date(), "%m-%d-%Y").date())
-            self.cal.get_date())
-        os.system('start EXCEL.exe ' + ExcelCore.FILENAME_POOL_TIMETABLE)
+        closeExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
 
-        self.statusLabel.config(text='Варианты расписаний сформированы.')
-        self.makeScheduleButton.pack_forget()
-        self.chooseIdLabel.pack(pady=10)
-        self.inputField.pack(pady=5)
-        self.chooseScheduleButton.pack(pady=5)
+        ExcelCore.output_pool_of_schedule_to_excel(
+            ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
+            ExcelCore.FILENAME_POOL_TIMETABLE,
+            searchMode=self.__getMode(),
+            currentDay=self.calendar.get_date())
+        openExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
+
+        if len(self.statusLabel.cget('text')) <= 0:
+            self.makeScheduleButton.config(text='Сформировать заново')
+            self.statusLabel.config(text='Варианты расписаний сформированы.')
+            self.statusLabel.pack(pady=5)
+            self.helloLabel.pack_forget()
+            # self.makeScheduleButton.pack_forget()
+            self.chooseIdLabel.pack(pady=10)
+            self.inputField.pack(pady=5)
+            self.chooseScheduleButton.pack(pady=5)
         pass
 
     def mainloop(self):
@@ -68,8 +126,5 @@ class MainWindow:
 
 
 if __name__ == "__main__":
-    import os
-    cwd = os.getcwd()
-    print(cwd)
-    window = MainWindow()
+    window = MainWindow(True if len(sys.argv) > 1 and sys.argv[1] == 'debug' else False)
     window.mainloop()

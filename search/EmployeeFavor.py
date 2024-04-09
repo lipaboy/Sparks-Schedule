@@ -21,21 +21,21 @@ class EmployeeFavor:
             'Люба': 7,
         }
 
+        self.whoElders = {'Вован', 'Люба'}
+
         "База духов"
-        self.ghostNames = {
-            'Даша': 1,
-            'Маша': 2,
-            'Саша': 3,
-            'Лада': 4,
-            'Артур': 5
-        }
-        self._ghostNamesById = {v: k for k, v in self.ghostNames.items()}
+        self.ghostNames = dict[str, int]()
 
         "База старших"
-        self.elderNames = {
-            'Вован': 1,
-            'Люба': 2
-        }
+        self.elderNames = dict[str, int]()
+
+        for name, id in self.namesDB.items():
+            if name in self.whoElders:
+                self.elderNames[name] = id - 5 # костылёк
+            else:
+                self.ghostNames[name] = id
+
+        self._ghostNamesById = {v: k for k, v in self.ghostNames.items()}
         self._elderNamesById = {v: k for k, v in self.elderNames.items()}
 
         " Распределение тачек "
@@ -105,20 +105,19 @@ class EmployeeFavor:
             " Увеличиваем количество тачек для сотрудника на 1 с каждым днём "
             trucks[name] += 1
 
-        vovanCard = EmployeeCard(list(self.elderNames.keys())[0], True, [])
-        lubaCard = EmployeeCard(list(self.elderNames.keys())[1], True, [])
+        elderCards = {
+            id: EmployeeCard(name, True, []) for name, id in self.elderNames.items()
+        }
         for day in self._week:
-            if day in schedule.vovan:
-                vovanCard.Shifts.append(
-                    (day, 1.0, self.__getNameForTruck(self._elderNamesById[1], weekTrucks, day))
-                )
-            else:
-                lubaCard.Shifts.append(
-                    (day, 1.0, self.__getNameForTruck(self._elderNamesById[2], weekTrucks, day))
-                )
+            for id, elderSch in schedule.getElders().items():
+                if day in elderSch:
+                    elderCards[id].Shifts.append(
+                        (day, 1.0, self.__getNameForTruck(self._elderNamesById[id], weekTrucks, day))
+                    )
+                    break
 
-        employeeCards.append(vovanCard)
-        employeeCards.append(lubaCard)
+        for _, card in elderCards.items():
+            employeeCards.append(card)
 
         for ghostName, ghostId in self.ghostNames.items():
             employeeCard = EmployeeCard(ghostName, False, [])
@@ -149,30 +148,48 @@ class EmployeeFavor:
 
         # todo: добавить старших
 
-        for ghostCard in excelSchedule.EmployeeCards:
+        for card in excelSchedule.EmployeeCards:
             # skip eldermen
-            if ghostCard.IsElder is True:
-                continue
-            ghostId = self.ghostNames[ghostCard.Name]
-            for day, shiftLen, _ in ghostCard.Shifts:
-                if day < self.pairDayStart():
-                    schedule.ghostOneTime[day - 1] = ghostId
-                elif day <= 7:
-                    pair = schedule.ghostPair[day - self.pairDayStart()]
-                    if shiftLen < 1.0 - 1e5 or pair[0] == 0:
-                        pair = (ghostId, pair[1])
-                    elif pair[1] == 0:
-                        pair = (pair[0], ghostId)
-                    else:
-                        print("Error: schedule is not parsed correctly. "
-                              "Repeated schedule in one day is found.")
+            if card.IsElder:
+                elderCard = card
+                elderId = self.elderNames[elderCard.Name]
+                for day, shiftLen, _ in elderCard.Shifts:
+                        schedule.getElders()[elderId].append(day)
+            else:
+                ghostCard = card
+                ghostId = self.ghostNames[ghostCard.Name]
+                for day, shiftLen, _ in ghostCard.Shifts:
+                    if day < self.pairDayStart():
+                        schedule.ghostOneTime[day - 1] = ghostId
+                    elif day <= 7:
+                        pair = schedule.ghostPair[day - self.pairDayStart()]
+                        if shiftLen < 1.0 - 1e5 or pair[0] == 0:
+                            pair = (ghostId, pair[1])
+                        elif pair[1] == 0:
+                            pair = (pair[0], ghostId)
+                        else:
+                            print("Error: schedule is not parsed correctly. "
+                                  "Repeated schedule in one day is found.")
 
-                    schedule.ghostPair[day - self.pairDayStart()] = pair
+                        schedule.ghostPair[day - self.pairDayStart()] = pair
 
         if not schedule.isValid():
             print("Error: schedule is not parsed correctly.")
 
         return schedule
+
+    def loadUndesirables(self, undesirables: dict[str, list[int]]):
+        self.undesirableElderDays = {
+            id: [] for _, id in self.elderNames.items()
+        }
+        self.undesirableGhostDays = {
+            id: [] for _, id in self.ghostNames.items()
+        }
+        for name, days in undesirables.items():
+            if name in self.whoElders:
+                self.undesirableElderDays[self.elderNames[name]] = days
+            else:
+                self.undesirableGhostDays[self.ghostNames[name]] = days
 
     def __printWeek(self):
         print(''.rjust(self._nameStringMaxLen + 1), end='')
@@ -212,7 +229,7 @@ class EmployeeFavor:
                           .rjust(4), end='')
                 else:
                     turnName = 'C2' if (day in self.partTimeDays
-                                        and ghostId == schedule.ghostPair[day - 4][0]) else 'С'
+                                        and ghostId == schedule.ghostPair[day - 4][0]) else 'C'
                     if day in self.undesirableGhostDays[ghostId]:
                         turnName = turnName.replace('C', 'S')
                     print((turnName if ghostId in schedule.ghostPair[day - 4] else 'x')
