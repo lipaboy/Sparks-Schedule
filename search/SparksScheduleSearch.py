@@ -5,6 +5,9 @@ from search.Schedule import Schedule
 from search.EmployeeFavor import EmployeeFavor, WeekScheduleExcelType
 
 
+MODE_LIST = ['fast', 'part', 'full']
+
+
 class SparksScheduleSearch:
     def search(self,
                undesirableDays: dict[str, list[int]] = None,
