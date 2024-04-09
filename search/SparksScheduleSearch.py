@@ -13,6 +13,8 @@ class SparksScheduleSearch:
         pass
 
     def search(self,
+               eldermen: list[str] = None, # по идее всегда не None
+               ghostmen: list[str] = None,
                undesirableDays: dict[str, list[int]] = None,
                prevSchedule: WeekScheduleExcelType = None,
                mode='part') -> list[WeekScheduleExcelType]:
