@@ -2,13 +2,16 @@ import copy
 import itertools
 
 from search.Schedule import Schedule
-from search.EmployeeFavor import EmployeeFavor, WeekScheduleExcelType
+from search.EmployeeFavor import EmployeeFavor, WeekScheduleExcelType, TruckDistributionType
 
 
 MODE_LIST = ['fast', 'part', 'full']
 
 
 class SparksScheduleSearch:
+    def calcNewTrucks(self, schedule: WeekScheduleExcelType) -> TruckDistributionType:
+        pass
+
     def search(self,
                undesirableDays: dict[str, list[int]] = None,
                prevSchedule: WeekScheduleExcelType = None,
@@ -18,7 +21,7 @@ class SparksScheduleSearch:
             self._favor.loadUndesirables(undesirableDays)
         if prevSchedule is not None:
             self.__loadPreviousWeekSchedule(prevSchedule)
-            if prevSchedule.Trucks is not None:
+            if prevSchedule.Trucks is not None and len(prevSchedule.Trucks) > 0:
                 self._favor.truckDistribution = prevSchedule.Trucks
 
         minDebatov = float(1e5)
