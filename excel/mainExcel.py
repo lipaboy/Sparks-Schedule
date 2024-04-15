@@ -73,15 +73,16 @@ def get_dated_week(mode=0, currentDay: datetime.date = datetime.date.today()): #
         return None
 
 def init_schedule_data_base(filenameSceduleDataBase):
+    #Checking for the existence of DB's file
     try:
         openpyxl.load_workbook(filename = filenameSceduleDataBase)
     except:
         pass
     else:
         return None
+    #Init List DB
     wbSceduleDataBase = openpyxl.Workbook()
     sheet = wbSceduleDataBase.worksheets[0]
-    #Init DB
     sheet.title = "Расписания"
     columnCursor = 1
     formatting_cell(sheet, 1, columnCursor, 0, 14, "Times New Roman", False, False, "center", "center")
@@ -103,8 +104,7 @@ def init_schedule_data_base(filenameSceduleDataBase):
     columnCursor += 1
     formatting_cell(sheet, 1, columnCursor, CHAR_CROSS, 14, "Times New Roman", False, False, "center", "center")
     sheet.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
-    #--
-    #Init Staff
+    #Init List STAFF
     startingPointColumn = 1
     startingPointRow = 1
     wbSceduleDataBase.create_sheet("Персонал")
@@ -119,10 +119,15 @@ def init_schedule_data_base(filenameSceduleDataBase):
     sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
     formatting_cell(sheet, startingPointRow, columnCursor, "Старший", 14, "Times New Roman", True, False, "center", "center")
     sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
-    #Cell NUM_OF_TRUCK
+    #Cell NUM_OF_TRUCK (T)
     columnCursor += 1
     sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
     formatting_cell(sheet, startingPointRow, columnCursor, "Кол-во Т", 14, "Times New Roman", True, False, "center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
+    #Cell NUM_OF_HALL (C)
+    columnCursor += 1
+    sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
+    formatting_cell(sheet, startingPointRow, columnCursor, "Кол-во С", 14, "Times New Roman", True, False, "center", "center")
     sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
     #Semitable PREFER_OF WEEK
     columnCursor += 2
@@ -131,32 +136,32 @@ def init_schedule_data_base(filenameSceduleDataBase):
         sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor + i)].width = TABLE_0_COLUMN_WIDTH
         formatting_cell(sheet, startingPointRow, columnCursor + i, datedWeek[i], 14, "Times New Roman", True, False, "center", "center")
         sheet.cell(row=startingPointRow, column=columnCursor + i).border = openpyxl.styles.Border(left=THICK_BORDER, bottom=THICK_BORDER)
-    #Cell CROSS
+    #Legend
     columnCursor += WEEK_LENGTH
     sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THICK_BORDER)
     columnCursor += 1
     sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_0_COLUMN_WIDTH
-    rowCursor = startingPointRow
-    formatting_cell(sheet, rowCursor, columnCursor, "Легенда", 14, "Times New Roman", False, False,"center", "center")
-    sheet.cell(row=rowCursor, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
-    rowCursor += 1
-    formatting_cell(sheet, rowCursor, columnCursor, CHAR_HALL, 14, "Times New Roman", False, False,"center", "center")
-    sheet.cell(row=rowCursor, column=columnCursor).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor=COLOR_HALL)
-    sheet.cell(row=rowCursor, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
-    rowCursor += 1
-    formatting_cell(sheet, rowCursor, columnCursor, CHAR_HALF_HALL, 14, "Times New Roman", False, False,"center", "center")
-    sheet.cell(row=rowCursor, column=columnCursor).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor=COLOR_HALL)
-    sheet.cell(row=rowCursor, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
-    rowCursor +=1
-    formatting_cell(sheet, rowCursor, columnCursor, CHAR_TRUCK, 14, "Times New Roman", False, False,"center", "center")
-    sheet.cell(row=rowCursor, column=columnCursor).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor=COLOR_TRUCK)
-    sheet.cell(row=rowCursor, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
-    rowCursor += 1
-    formatting_cell(sheet, rowCursor, columnCursor, CHAR_CROSS, 14, "Times New Roman", False, False,"center", "center")
-    sheet.cell(row=rowCursor, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    formatting_cell(sheet, startingPointRow, columnCursor, "Легенда", 14, "Times New Roman", False, False,"center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    columnCursor += 1
+    formatting_cell(sheet, startingPointRow, columnCursor, CHAR_HALL, 14, "Times New Roman", False, False,"center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor=COLOR_HALL)
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    columnCursor += 1
+    formatting_cell(sheet, startingPointRow, columnCursor, CHAR_HALF_HALL, 14, "Times New Roman", False, False,"center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor=COLOR_HALL)
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    columnCursor +=1
+    formatting_cell(sheet, startingPointRow, columnCursor, CHAR_TRUCK, 14, "Times New Roman", False, False,"center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor=COLOR_TRUCK)
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    columnCursor += 1
+    formatting_cell(sheet, startingPointRow, columnCursor, CHAR_CROSS, 14, "Times New Roman", False, False,"center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    #Creating border of empty cells
     for j in range(1, 6):
         columnCursor = startingPointColumn
-        for i in range(3):
+        for i in range(4):
             sheet.cell(row=startingPointRow + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER)
             columnCursor += 1
         columnCursor += 1
@@ -164,36 +169,65 @@ def init_schedule_data_base(filenameSceduleDataBase):
             sheet.cell(row=startingPointRow + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, bottom=THIN_BORDER)
             columnCursor += 1
         sheet.cell(row=startingPointRow + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER)
-    #--
+    #Save
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\n\tFile '{filenameSceduleDataBase}' was created!")
 
 def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast", currentDay: datetime.date = datetime.date.today()):# "fast", "part", "full"
-    #--Init
+    #Init DB's FILE
     init_schedule_data_base(filenameSceduleDataBase)
+    #Init staff(elders, ghosts)
+    staff = get_schedule_data_base_staff(filenameSceduleDataBase)
+    elders = list()
+    ghosts = list()
+    for staffName, staffPosition in staff.items():
+        if staffPosition == True:
+            elders.append(staffName)
+        else:
+            ghosts.append(staffName)
+    #Init
     sparks = SparksScheduleSearch()
-    timeTable = sparks.search(undesirableDays=get_schedule_data_base_undesirable_days(filenameSceduleDataBase), prevSchedule=get_schedule_data_base(filenameSceduleDataBase), mode=searchMode) #'fast', 'part', 'full'
+    timeTable = sparks.search(eldermen=elders, ghostmen=ghosts, undesirableDays=get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase), prevSchedule=get_schedule_data_base(filenameSceduleDataBase), mode=searchMode) #'fast', 'part', 'full'
     wb = openpyxl.Workbook()
     sheet = wb.worksheets[0]
     sheet.title = "Выбор расписания"
     tableWidth = 1 + WEEK_LENGTH + SPACE_BETWEEN_TABLES  # +1 - begin from 1; +1 - space between tables
     tableHeight = 1 + len(timeTable[0].EmployeeCards) + SPACE_BETWEEN_TABLES
-    #--
-    #--Fill table all timeTables
+    #Legend
+    startingPointRow = 1
+    columnCursor = 1
+    sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_0_COLUMN_WIDTH
+    formatting_cell(sheet, startingPointRow, columnCursor, "Легенда", 14, "Times New Roman", False, False, "center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    columnCursor += 1
+    formatting_cell(sheet, startingPointRow, columnCursor, CHAR_HALL, 14, "Times New Roman", False, False, "center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor=COLOR_HALL)
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    columnCursor += 1
+    formatting_cell(sheet, startingPointRow, columnCursor, CHAR_HALF_HALL, 14, "Times New Roman", False, False, "center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor=COLOR_HALL)
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    columnCursor += 1
+    formatting_cell(sheet, startingPointRow, columnCursor, CHAR_TRUCK, 14, "Times New Roman", False, False, "center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor=COLOR_TRUCK)
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    columnCursor += 1
+    formatting_cell(sheet, startingPointRow, columnCursor, CHAR_CROSS, 14, "Times New Roman", False, False, "center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER, top=THIN_BORDER)
+    #Fill table all timeTables
     for numOfTable in range(len(timeTable)):
         startingPointColumn = 1 + ((numOfTable % NUMBER_OF_TABLES_IN_LINE) * tableWidth)
-        startingPointRow = 1 + ((numOfTable // NUMBER_OF_TABLES_IN_LINE) * tableHeight)
+        startingPointRow = 3 + ((numOfTable // NUMBER_OF_TABLES_IN_LINE) * tableHeight)
         sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn)].width = TABLE_0_COLUMN_WIDTH
         for i in range(1, WEEK_LENGTH + 1):
             sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn+i)].width = TABLE_0_COLUMN_WIDTH#15 #if [day, dd mmmm]
         formatting_cell(sheet, startingPointRow, startingPointColumn, f"№ {numOfTable + 1}", 14, "Times New Roman", False, False, "center", "center")
-        #--Formatting and x-filling the timetable
+        #Formatting and x-filling the timetable
         for row in range(startingPointRow+1, len(timeTable[numOfTable].EmployeeCards)+startingPointRow+1):
             for column in range(startingPointColumn+1, WEEK_LENGTH + startingPointColumn + 1):
                 sheet.cell(row=row, column=column).border = openpyxl.styles.Border(right=THIN_BORDER,bottom=THIN_BORDER)
                 formatting_cell(sheet, row, column, CHAR_CROSS, 14, "Times New Roman", False, False, "center", "center")
-        #--
-        #--Creating of header of timetable
+        #Creating of header of timetable
         datedWeek = get_dated_week(currentDay=currentDay)
         for day in range(1, WEEK_LENGTH + 1):
             sheet.cell(row=startingPointRow, column=startingPointColumn+day).border = openpyxl.styles.Border(left=THICK_BORDER, right=THICK_BORDER, top=THICK_BORDER, bottom=THICK_BORDER)
@@ -201,8 +235,7 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
         for numOfStaff in range(len(timeTable[numOfTable].EmployeeCards)):
             sheet.cell(row=startingPointRow + numOfStaff + 1, column=startingPointColumn).border = openpyxl.styles.Border(left=THICK_BORDER, right=THICK_BORDER, top=THICK_BORDER, bottom=THICK_BORDER)
             formatting_cell(sheet, startingPointRow + numOfStaff + 1, startingPointColumn, timeTable[numOfTable].EmployeeCards[numOfStaff].Name, 14, "Times New Roman", timeTable[numOfTable].EmployeeCards[numOfStaff].IsElder, True, "right", "center")
-        #--
-        #--Fill data to the timetable
+        #Fill data to the timetable
         typeOfShift = CHAR_CROSS
         for numOfStaff in range(len(timeTable[numOfTable].EmployeeCards)):  #class EmployeeCard(name: str, isElder: bool, shifts: list[ShiftType])
             for shift in timeTable[numOfTable].EmployeeCards[numOfStaff].Shifts: #ShiftType = tuple[DayType, ShiftLength, PlaceToWork]
@@ -216,12 +249,10 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
                     sheet.cell(row=startingPointRow + numOfStaff + 1, column=startingPointColumn + shift[0]).fill = openpyxl.styles.PatternFill(fill_type='solid', fgColor='ABEBC6')
                     typeOfShift = CHAR_TRUCK
                 formatting_cell(sheet, startingPointRow + numOfStaff + 1, startingPointColumn + shift[0], typeOfShift, 14, "Times New Roman", False, False, "center", "center")
-        #--
-    #--
-    #--Close and save excel's file
+    #Close and save excel's file
     wb.save(filenamePoolTimetable)
     print(f"\n\tFile '{filenamePoolTimetable}' was created!")
-    #--
+    #Return number of tables in pool
     lengthOfPool = len(timeTable)
     return lengthOfPool
 
@@ -231,22 +262,19 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
     sheet = wbSceduleDataBase.worksheets[0]
     wbChooseTimetable = openpyxl.load_workbook(filename = filenamePoolTimetable)
     poolSheet = wbChooseTimetable.worksheets[0]
-    #--
     #Calc of staff's size
     staffLength = 0
-    r = 2
+    r = 4
     while poolSheet.cell(row=r, column=1).value != None:
         staffLength += 1
         r += 1
-    #--
     #Init tables parameters
     tableWidth = 1 + 7 + SPACE_BETWEEN_TABLES  # +1 - begin from 1; 7 - week length; +1 - space between tables
     tableHeight = 1 + staffLength + SPACE_BETWEEN_TABLES
     startingPointColumn = 1 + (sheet.cell(row=1, column=1).value * tableWidth)
     startingPointRow = 3
     poolPointColumn = 1 + (((numChoosingTimetable-1) % NUMBER_OF_TABLES_IN_LINE) * tableWidth)
-    poolPointRow = 1 + (((numChoosingTimetable-1) // NUMBER_OF_TABLES_IN_LINE) * tableHeight)
-    #--
+    poolPointRow = 3 + (((numChoosingTimetable-1) // NUMBER_OF_TABLES_IN_LINE) * tableHeight)
     #Update DB
     for j in range(tableWidth-SPACE_BETWEEN_TABLES):
         sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn+j)].width = TABLE_0_COLUMN_WIDTH
@@ -257,10 +285,9 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
             sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
             sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
             sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
-
     sheet.cell(row=1, column=1).value = sheet.cell(row=1, column=1).value + 1 #number of week schedule + 1 after added
     sheet.cell(row=startingPointRow, column=startingPointColumn).value = "№ " + str(sheet.cell(row=1, column=1).value)
-    #--
+    #Save DB's file
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\nPool schedule number {numChoosingTimetable} was added to Schedule Data Base '{filenameSceduleDataBase}'")
 
@@ -269,22 +296,10 @@ def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None
     if poolOfNewStaff != None:
         print(f"{ERROR_STR_HEAD}! (update_schedule_data_base_staff)\n\t\tType of data wasn't selected")#Todo Add update from array of data
         return None
-    #--
+    #Init
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[0]
     sheetStaff = wbSceduleDataBase.worksheets[1]
-    # Clear sheet of staff
-    # sheetStaff.delete_cols(1)
-    # sheetStaff.delete_cols(1)
-    # columnCursor = 1
-    # sheetStaff.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
-    # formatting_cell(sheetStaff, 1, columnCursor, "Имя", 14, "Times New Roman", True, False, "center", "center")
-    # sheetStaff.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=MEDIUM_BORDER, bottom=THICK_BORDER)
-    # columnCursor = 2
-    # sheetStaff.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
-    # formatting_cell(sheetStaff, 1, columnCursor, "Старший", 14, "Times New Roman", True, False, "center", "center")
-    # sheetStaff.cell(row=1, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
-    #--
     lengthOfDataBase = sheet.cell(row=1, column=1).value
     # Check the 3rd parameter
     if numOfSelectedSchedule == -1:
@@ -297,7 +312,7 @@ def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None
         else:
             print(ERROR_STR_HEAD + "! (update_schedule_data_base_staff)\n\t\tOut of range!!!")  # it gives the last schedule in DB
         return None
-    #--
+    #Init table's coordinate
     tableWidth = 1 + 7 + SPACE_BETWEEN_TABLES  # +1 - begin from 1; 7 - week length; +1 - space between tables
     startingPointColumn = 1 + ((selectedNumber-1) * tableWidth)
     startingPointRow = 4
@@ -305,6 +320,7 @@ def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None
     staffPointRow = 2 #Because we already have HEAD
     i = 0
     statusChar = "-"
+    #Table fill
     while sheet.cell(row=startingPointRow + i, column=startingPointColumn).value != None:
         formatting_cell(sheetStaff, staffPointRow + i, staffPointColumn, sheet.cell(row=startingPointRow+i, column=startingPointColumn).value,
                         14, "Times New Roman", sheet.cell(row=startingPointRow + i, column=startingPointColumn).font.b, True, "right", "center")
@@ -316,10 +332,14 @@ def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None
                         14, "Times New Roman", False, False, "center", "center")#IsElder
         formatting_cell(sheetStaff, staffPointRow + i, staffPointColumn+2, 0,
                         14, "Times New Roman", False, False, "center", "center")#NumOfTruck
+        formatting_cell(sheetStaff, staffPointRow + i, staffPointColumn+3, 0.0,
+                        14, "Times New Roman", False, False, "center", "center")  # NumOfHall
         sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
         sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn+1).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
         sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn+2).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
+        sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn+3).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
         i += 1
+    #Save DB's file
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\nStaff was updated on Schedule Data Base '{filenameSceduleDataBase}'")
 
@@ -338,8 +358,6 @@ def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#T
         else:
             print(ERROR_STR_HEAD + "! (get_schedule_data_base)\n\t\tOut of range!!!") #it gives the last schedule in DB
         return None
-    # print(f"\n\tTable's selected number: {selectedNumber}")
-    #--
     #Init tables parameters
     tableWidth = 1 + 7 + SPACE_BETWEEN_TABLES  # +1 - begin from 1; 7 - week length; +1 - space between tables
     startingPointColumn = 1 + ((selectedNumber-1) * tableWidth)
@@ -350,8 +368,7 @@ def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#T
         r += 1
     tableHeight = 1 + staffLength + SPACE_BETWEEN_TABLES
     startingPointRow = 3
-    #--
-    #get selected schedule from data base
+    #Get selected schedule from data base
     outputSchedule = WeekScheduleExcelType()
     for i in range(1, tableHeight-SPACE_BETWEEN_TABLES):
         bufferName = sheet.cell(row=startingPointRow+i, column=startingPointColumn).value
@@ -366,8 +383,23 @@ def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#T
                 elif sheet.cell(row=startingPointRow+i, column=startingPointColumn+j).value.upper() == CHAR_HALF_HALL:
                     bufferShifts.append((j, 0.5, "Hall"))
         outputSchedule.EmployeeCards.append(EmployeeCard(name=bufferName, isElder=bufferIsElder, shifts=bufferShifts))
-    #--
     return outputSchedule
+
+def get_schedule_data_base_staff(filenameSceduleDataBase):
+    wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
+    sheet = wbSceduleDataBase.worksheets[1]
+    data = dict()
+    startingPointColumn = 1
+    startingPointRow = 2
+    stepToIsElder = 1
+    j = 0
+    while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
+        if sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToIsElder).value == "+":
+            data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = True
+        else:
+            data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = False
+        j += 1
+    return data
 
 def get_schedule_data_base_staff_and_truck(filenameSceduleDataBase):
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
@@ -378,22 +410,36 @@ def get_schedule_data_base_staff_and_truck(filenameSceduleDataBase):
     stepToTruck = 2
     j = 0
     while sheet.cell(row=startingPointRow+j, column=startingPointColumn).value != None:
-        trucks = list()
         if sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToTruck).value == None:
-            trucks.append(0)
+            data.Trucks[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = 0
         else:
-            trucks.append(sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToTruck).value)
-        data.Trucks[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = trucks
+            data.Trucks[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToTruck).value
         j += 1
     return data
 
-def get_schedule_data_base_undesirable_days(filenameSceduleDataBase):
+def get_schedule_data_base_staff_and_hall(filenameSceduleDataBase):
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[1]
     data = dict()
     startingPointColumn = 1
     startingPointRow = 2
-    stepToUndesirableDays = 4
+    stepToHall = 3
+    j = 0
+    while sheet.cell(row=startingPointRow+j, column=startingPointColumn).value != None:
+        if sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToHall).value == None:
+            data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = 0
+        else:
+            data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToHall).value
+        j += 1
+    return data
+
+def get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase):
+    wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
+    sheet = wbSceduleDataBase.worksheets[1]
+    data = dict()
+    startingPointColumn = 1
+    startingPointRow = 2
+    stepToUndesirableDays = 5
     j = 0
     while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
         undesirableDays = list()
@@ -427,10 +473,32 @@ def check_get_schdedule(filenameSceduleDataBase, numOfSelectedSchedule=-1):
     else:
         print(ERROR_STR_HEAD + "! (check_get_schdedule)\n\t\tEmpty data base!")
 
+def check_get_staff(filenameSceduleDataBase, filenamePoolTimetable, numOfColumn = 1): #1 - NAME/IS_ELDER; 2 - NAME/NUM_OF_TRUCK; 3 - NAME/NUM_OF_HALL; 4 - NAME/UNDESIRABLE_DAYS.
+    if numOfColumn == 1:
+        print("\n\t1 - NAME/IS_ELDER")
+        data = get_schedule_data_base_staff(filenameSceduleDataBase)
+        print(data)
+    elif numOfColumn == 2:
+        print("\n\t2 - NAME/NUM_OF_TRUCK")
+        data = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase)
+        print(data.Trucks)
+    elif numOfColumn == 3:
+        print("\n\t3 - NAME/NUM_OF_HALL")
+        data = get_schedule_data_base_staff_and_hall(filenameSceduleDataBase)
+        print(data)
+    elif numOfColumn == 4:
+        print("\n\t4 - NAME/UNDESIRABLE_DAYS")
+        data = get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase)
+        print(data)
+    else:
+        print(f"{ERROR_STR_HEAD}! (check_get_staff)\n\t\tWrong argument")
+
 def check_full(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"):
     check_output_and_update_schedule(filenameSceduleDataBase, filenamePoolTimetable, searchMode) # "fast", "part", "full"
-    update_schedule_data_base_staff(filenameSceduleDataBase)
+    # update_schedule_data_base_staff(filenameSceduleDataBase)
     # check_get_schdedule(filenameSceduleDataBase)
+    for i in range(1, 5):
+        flag = check_get_staff(localFilenameScheduleDataBase, localFilenamePoolTimetable, i)
 
 if __name__ == "__main__":
     localFilenameScheduleDataBase = "../" + FILENAME_SCHEDULE_DATA_BASE
