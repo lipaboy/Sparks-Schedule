@@ -1,14 +1,45 @@
-import psutil
-from subprocess import Popen
+# import time
+# from multiprocessing import Process
+#
+# def print_word(word):
+#     time.sleep(1)
+#     print('hello,', word)
+#
+# if __name__ == '__main__':
+#     p1 = Process(target=print_word, args=('bob',), daemon=True)
+#     p2 = Process(target=print_word, args=('alice',), daemon=True)
+#     p1.start()
+#     p2.start()
+#     p1.join()
+#     p2.join()
+#
 
-from psutil import AccessDenied
 
-plist = psutil.process_iter()
-for i in plist:
-    try:
-        if 'excel' in i.name().lower():
-            print( i.name(), i.pid, i.cmdline(), i.open_files() )
-            if any('PoolTime' in path.path for path in i.open_files()):
-                i.kill()
-    except AccessDenied:
-        print("'%s' Process is not allowing us to view the CPU Usage!" + i.name())
+
+
+# Import all the necessary libraries
+from tkinter import *
+import time
+import threading
+
+# Define the tkinter instance
+win = Tk()
+
+# Define the size of the tkinter frame
+win.geometry("700x400")
+
+
+# Define the function to start the thread
+def thread_fun():
+    label.config(text="You can Click the button or Wait")
+    time.sleep(5)
+    label.config(text="5 seconds Up!")
+
+
+label = Label(win)
+label.pack(pady=20)
+# Create button
+b1 = Button(win, text="Start", command=threading.Thread(target=thread_fun).start())
+b1.pack(pady=20)
+
+win.mainloop()

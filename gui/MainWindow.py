@@ -1,7 +1,10 @@
 import sys
 import tkinter as tk
 import os
-import subprocess
+from multiprocessing import Process
+import threading
+from tkinter.constants import HORIZONTAL
+from tkinter.ttk import Progressbar
 
 import psutil
 
@@ -33,12 +36,17 @@ class MainWindow:
         self.isDebug = isDebug
 
         # Set Height and Width of Window
-        self.window.geometry("350x350")
+        self.window.geometry("350x400")
 
         # Set the Title according to desire
         self.window.title("Расписание Спаркса")
 
-        self.makeScheduleButton = tk.Button(text="Сформировать расписание", command=self.makeScheduleRequest)
+        self.makeScheduleButton = tk.Button(
+            text="Сформировать расписание",
+            command=lambda: threading.Thread(target=self.makeScheduleRequest).start()
+        )
+        self.pb1 = Progressbar(self.window, orient=HORIZONTAL, length=100, mode='indeterminate')
+
         self.chooseScheduleButton = tk.Button(text="Выбрать", command=self.chooseScheduleRequest)
         # self.makeScheduleButton.grid(padx=20, pady=20)
         self.speedLabel = tk.Label(text='')
@@ -99,15 +107,35 @@ class MainWindow:
         else:
             self.statusLabel.config(text='Неверный номер расписания', fg='#f00')
 
+
     def makeScheduleRequest(self):
         """"""
+        self.makeScheduleButton.config(state='disabled')
+        self.pb1.pack()
+
         closeExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
 
-        ExcelCore.output_pool_of_schedule_to_excel(
-            ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
-            ExcelCore.FILENAME_POOL_TIMETABLE,
-            searchMode=self.__getMode(),
-            currentDay=self.calendar.get_date())
+        generateSchedules = Process(
+            target=ExcelCore.output_pool_of_schedule_to_excel,
+            args=(ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
+                  ExcelCore.FILENAME_POOL_TIMETABLE,
+                  self.__getMode(),
+                  self.calendar.get_date()),
+            daemon=True
+        )
+        generateSchedules.start()
+        while True:
+            generateSchedules.join(0.1)
+            if generateSchedules.exitcode is not None:
+                break
+            self.pb1['value'] += 30
+
+        # ExcelCore.output_pool_of_schedule_to_excel(
+        #     ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
+        #     ExcelCore.FILENAME_POOL_TIMETABLE,
+        #     searchMode=self.__getMode(),
+        #     currentDay=self.calendar.get_date())
+
         openExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
 
         if len(self.statusLabel.cget('text')) <= 0:
@@ -119,7 +147,9 @@ class MainWindow:
             self.chooseIdLabel.pack(pady=10)
             self.inputField.pack(pady=5)
             self.chooseScheduleButton.pack(pady=5)
-        pass
+
+        self.makeScheduleButton.config(state='normal')
+        self.pb1.pack_forget()
 
     def mainloop(self):
         self.window.mainloop()
