@@ -276,17 +276,47 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
     poolPointColumn = 1 + (((numChoosingTimetable-1) % NUMBER_OF_TABLES_IN_LINE) * tableWidth)
     poolPointRow = 3 + (((numChoosingTimetable-1) // NUMBER_OF_TABLES_IN_LINE) * tableHeight)
     #Update DB
-    for j in range(tableWidth-SPACE_BETWEEN_TABLES):
+    for j in range(tableWidth-SPACE_BETWEEN_TABLES):#Head update
         sheet.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn+j)].width = TABLE_0_COLUMN_WIDTH
-    for i in range(tableHeight-SPACE_BETWEEN_TABLES):
+        sheet.cell(row=startingPointRow, column=startingPointColumn + j).value = poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).value
+        sheet.cell(row=startingPointRow, column=startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).font)
+        sheet.cell(row=startingPointRow, column=startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).alignment)
+        sheet.cell(row=startingPointRow, column=startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).border)
+        sheet.cell(row=startingPointRow, column=startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).fill)
+    poolTable = WeekScheduleExcelType() #For calcNewTrucks()
+    for i in range(1, tableHeight-SPACE_BETWEEN_TABLES):#Other
+        bufferName = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn).value#For calcNewTrucks()
+        bufferIsElder = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn).font.b#For calcNewTrucks()
+        bufferShifts = list[ShiftType]()#For calcNewTrucks()
         for j in range(tableWidth-SPACE_BETWEEN_TABLES):
+            if poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value != CHAR_CROSS:#For calcNewTrucks()
+                if poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_TRUCK:#For calcNewTrucks()
+                    bufferShifts.append((j, 1.0, "Truck"))#For calcNewTrucks()
+                elif poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_HALL:#For calcNewTrucks()
+                    bufferShifts.append((j, 1.0, "Hall"))#For calcNewTrucks()
+                elif poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_HALF_HALL:#For calcNewTrucks()
+                    bufferShifts.append((j, 0.5, "Hall"))#For calcNewTrucks()
             sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).value = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).value
             sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).font)
             sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
             sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
             sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
-    sheet.cell(row=1, column=1).value = sheet.cell(row=1, column=1).value + 1 #number of week schedule + 1 after added
+        poolTable.EmployeeCards.append(EmployeeCard(name=bufferName, isElder=bufferIsElder, shifts=bufferShifts))#For calcNewTrucks()
+    sheet.cell(row=1, column=1).value = sheet.cell(row=1, column=1).value + 1  # number of week schedule + 1 after added
     sheet.cell(row=startingPointRow, column=startingPointColumn).value = "№ " + str(sheet.cell(row=1, column=1).value)
+    #Fill Truck
+    # sheet = wbSceduleDataBase.worksheets[1]
+    # data = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase)#calcNewTrucks(poolTable)
+    # startingPointColumn = 1
+    # startingPointRow = 2
+    # stepToTruck = 2
+    # j = 0
+    # while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
+    #     if data.Trucks[sheet.cell(row=startingPointRow + j, column=startingPointColumn).value] == None:
+    #         sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = 0
+    #     else:
+    #         sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = data.Trucks[sheet.cell(row=startingPointRow + j, column=startingPointColumn).value]*10
+    #     j += 1
     #Save DB's file
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\nPool schedule number {numChoosingTimetable} was added to Schedule Data Base '{filenameSceduleDataBase}'")
@@ -497,8 +527,8 @@ def check_full(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"
     check_output_and_update_schedule(filenameSceduleDataBase, filenamePoolTimetable, searchMode) # "fast", "part", "full"
     # update_schedule_data_base_staff(filenameSceduleDataBase)
     # check_get_schdedule(filenameSceduleDataBase)
-    for i in range(1, 5):
-        flag = check_get_staff(localFilenameScheduleDataBase, localFilenamePoolTimetable, i)
+    # for i in range(1, 5):
+    #     flag = check_get_staff(localFilenameScheduleDataBase, localFilenamePoolTimetable, i)
 
 if __name__ == "__main__":
     localFilenameScheduleDataBase = "../" + FILENAME_SCHEDULE_DATA_BASE
