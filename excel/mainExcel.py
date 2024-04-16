@@ -187,7 +187,11 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
             ghosts.append(staffName)
     #Init
     sparks = SparksScheduleSearch()
-    timeTable = sparks.search(eldermen=elders, ghostmen=ghosts, undesirableDays=get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase), prevSchedule=get_schedule_data_base(filenameSceduleDataBase), mode=searchMode) #'fast', 'part', 'full'
+    timeTable = sparks.search(eldermen=elders,
+                              ghostmen=ghosts,
+                              undesirableDays=get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase),
+                              prevSchedule=get_schedule_data_base(filenameSceduleDataBase),
+                              mode=searchMode) #'fast', 'part', 'full'
     wb = openpyxl.Workbook()
     sheet = wb.worksheets[0]
     sheet.title = "Выбор расписания"
@@ -305,18 +309,21 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
     sheet.cell(row=1, column=1).value = sheet.cell(row=1, column=1).value + 1  # number of week schedule + 1 after added
     sheet.cell(row=startingPointRow, column=startingPointColumn).value = "№ " + str(sheet.cell(row=1, column=1).value)
     #Fill Truck
-    # sheet = wbSceduleDataBase.worksheets[1]
-    # data = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase)#calcNewTrucks(poolTable)
-    # startingPointColumn = 1
-    # startingPointRow = 2
-    # stepToTruck = 2
-    # j = 0
-    # while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
-    #     if data.Trucks[sheet.cell(row=startingPointRow + j, column=startingPointColumn).value] == None:
-    #         sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = 0
-    #     else:
-    #         sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = data.Trucks[sheet.cell(row=startingPointRow + j, column=startingPointColumn).value]*10
-    #     j += 1
+    sheet = wbSceduleDataBase.worksheets[1]
+    sparks = SparksScheduleSearch()
+    data = WeekScheduleExcelType()
+    poolTable.Trucks = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase).Trucks
+    data.Trucks = sparks.calcNewTrucks(poolTable)
+    startingPointColumn = 1
+    startingPointRow = 2
+    stepToTruck = 2
+    j = 0
+    while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
+        if data.Trucks[sheet.cell(row=startingPointRow + j, column=startingPointColumn).value] == None:
+            sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = 0
+        else:
+            sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = data.Trucks[sheet.cell(row=startingPointRow + j, column=startingPointColumn).value]
+        j += 1
     #Save DB's file
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\nPool schedule number {numChoosingTimetable} was added to Schedule Data Base '{filenameSceduleDataBase}'")
@@ -533,4 +540,4 @@ def check_full(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"
 if __name__ == "__main__":
     localFilenameScheduleDataBase = "../" + FILENAME_SCHEDULE_DATA_BASE
     localFilenamePoolTimetable = "../" + FILENAME_POOL_TIMETABLE
-    check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
+    check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "full")

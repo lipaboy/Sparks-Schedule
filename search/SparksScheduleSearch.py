@@ -10,7 +10,7 @@ MODE_LIST = ['fast', 'part', 'full']
 
 class SparksScheduleSearch:
     def calcNewTrucks(self, schedule: WeekScheduleExcelType) -> TruckDistributionType:
-        pass
+        return schedule.Trucks
 
     def search(self,
                eldermen: list[str] = None, # по идее всегда не None
