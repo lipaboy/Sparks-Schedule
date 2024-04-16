@@ -10,12 +10,16 @@ MODE_LIST = ['fast', 'part', 'full']
 
 class SparksScheduleSearch:
     def calcNewTrucks(self, schedule: WeekScheduleExcelType) -> TruckDistributionType:
-        return schedule.Trucks
+        newTrucks = schedule.Trucks
+        for name in newTrucks.keys():
+            newTrucks[name] += 1
+        return newTrucks
 
     def search(self,
                eldermen: list[str] = None, # по идее всегда не None
                ghostmen: list[str] = None,
                undesirableDays: dict[str, list[int]] = None,
+               shiftCountPreferences: dict[str, int] = None,
                prevSchedule: WeekScheduleExcelType = None,
                mode='part') -> list[WeekScheduleExcelType]:
 

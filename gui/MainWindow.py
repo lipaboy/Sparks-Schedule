@@ -20,8 +20,9 @@ def closeExcelDocumentProcess(excelFileName: str):
     for proc in processList:
         try:
             if 'excel' in proc.name().lower():
-                # print(proc.name(), proc.pid, proc.cmdline(), proc.open_files())
+                print(proc.name(), proc.pid, proc.cmdline(), proc.open_files())
                 if any(excelFileName in path.path for path in proc.open_files()):
+                    print("close " + proc.name())
                     proc.kill()
         except psutil.AccessDenied:
             continue
@@ -45,7 +46,7 @@ class MainWindow:
             text="Сформировать расписание",
             command=lambda: threading.Thread(target=self.makeScheduleRequest).start()
         )
-        self.pb1 = Progressbar(self.window, orient=HORIZONTAL, length=100, mode='indeterminate')
+        self.progressBar = Progressbar(self.window, orient=HORIZONTAL, length=100, mode='indeterminate')
 
         self.chooseScheduleButton = tk.Button(text="Выбрать", command=self.chooseScheduleRequest)
         # self.makeScheduleButton.grid(padx=20, pady=20)
@@ -90,11 +91,12 @@ class MainWindow:
     def chooseScheduleRequest(self):
         scheduleNum = self.inputField.get()
         if scheduleNum.isdigit():
+            if self.isDebug:
+                closeExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
             ExcelCore.update_schedule_data_base(ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
                                                 ExcelCore.FILENAME_POOL_TIMETABLE,
                                                 int(scheduleNum))
             if self.isDebug:
-                closeExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
                 openExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
 
             self.chooseIdLabel.pack_forget()
@@ -111,7 +113,7 @@ class MainWindow:
     def makeScheduleRequest(self):
         """"""
         self.makeScheduleButton.config(state='disabled')
-        self.pb1.pack()
+        self.progressBar.pack()
 
         closeExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
 
@@ -125,10 +127,10 @@ class MainWindow:
         )
         generateSchedules.start()
         while True:
-            generateSchedules.join(0.1)
+            generateSchedules.join(0.7 if self.__getMode() == 'full' else 0.1)
             if generateSchedules.exitcode is not None:
                 break
-            self.pb1['value'] += 30
+            self.progressBar['value'] += 30
 
         # ExcelCore.output_pool_of_schedule_to_excel(
         #     ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
@@ -149,7 +151,7 @@ class MainWindow:
             self.chooseScheduleButton.pack(pady=5)
 
         self.makeScheduleButton.config(state='normal')
-        self.pb1.pack_forget()
+        self.progressBar.pack_forget()
 
     def mainloop(self):
         self.window.mainloop()

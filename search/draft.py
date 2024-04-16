@@ -1,3 +1,9 @@
+
+a = {(1, 2), (2, 3), (2, 1), (1, 2)}
+print(a)
+
+
+
 # import time
 # from multiprocessing import Process
 #
@@ -16,30 +22,30 @@
 
 
 
-
-# Import all the necessary libraries
-from tkinter import *
-import time
-import threading
-
-# Define the tkinter instance
-win = Tk()
-
-# Define the size of the tkinter frame
-win.geometry("700x400")
-
-
-# Define the function to start the thread
-def thread_fun():
-    label.config(text="You can Click the button or Wait")
-    time.sleep(5)
-    label.config(text="5 seconds Up!")
-
-
-label = Label(win)
-label.pack(pady=20)
-# Create button
-b1 = Button(win, text="Start", command=threading.Thread(target=thread_fun).start())
-b1.pack(pady=20)
-
-win.mainloop()
+#
+# # Import all the necessary libraries
+# from tkinter import *
+# import time
+# import threading
+#
+# # Define the tkinter instance
+# win = Tk()
+#
+# # Define the size of the tkinter frame
+# win.geometry("700x400")
+#
+#
+# # Define the function to start the thread
+# def thread_fun():
+#     label.config(text="You can Click the button or Wait")
+#     time.sleep(5)
+#     label.config(text="5 seconds Up!")
+#
+#
+# label = Label(win)
+# label.pack(pady=20)
+# # Create button
+# b1 = Button(win, text="Start", command=threading.Thread(target=thread_fun).start())
+# b1.pack(pady=20)
+#
+# win.mainloop()
