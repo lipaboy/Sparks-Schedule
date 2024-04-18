@@ -14,7 +14,8 @@ class Schedule:
         return (1 if day in self.vovan else 2,
                 [self.ghostOneTime[day - 1]]
                 if day < self.pairDayStart
-                else list(self.ghostPair[day - self.pairDayStart]))
+                else list(self.ghostPair[day - self.pairDayStart])
+                )
 
     def getElders(self) -> dict[int, list[int]]:
         return {

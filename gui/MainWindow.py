@@ -20,9 +20,9 @@ def closeExcelDocumentProcess(excelFileName: str):
     for proc in processList:
         try:
             if 'excel' in proc.name().lower():
-                print(proc.name(), proc.pid, proc.cmdline(), proc.open_files())
+                # print(proc.name(), proc.pid, proc.cmdline(), proc.open_files())
                 if any(excelFileName in path.path for path in proc.open_files()):
-                    print("close " + proc.name())
+                    # print("close " + proc.name())
                     proc.kill()
         except psutil.AccessDenied:
             continue
@@ -117,26 +117,27 @@ class MainWindow:
 
         closeExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
 
-        generateSchedules = Process(
-            target=ExcelCore.output_pool_of_schedule_to_excel,
-            args=(ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
-                  ExcelCore.FILENAME_POOL_TIMETABLE,
-                  self.__getMode(),
-                  self.calendar.get_date()),
-            daemon=True
-        )
-        generateSchedules.start()
-        while True:
-            generateSchedules.join(0.7 if self.__getMode() == 'full' else 0.1)
-            if generateSchedules.exitcode is not None:
-                break
-            self.progressBar['value'] += 30
-
-        # ExcelCore.output_pool_of_schedule_to_excel(
-        #     ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
-        #     ExcelCore.FILENAME_POOL_TIMETABLE,
-        #     searchMode=self.__getMode(),
-        #     currentDay=self.calendar.get_date())
+        if not self.isDebug:
+            generateSchedules = Process(
+                target=ExcelCore.output_pool_of_schedule_to_excel,
+                args=(ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
+                      ExcelCore.FILENAME_POOL_TIMETABLE,
+                      self.__getMode(),
+                      self.calendar.get_date()),
+                daemon=True
+            )
+            generateSchedules.start()
+            while True:
+                generateSchedules.join(0.7 if self.__getMode() == 'full' else 0.1)
+                if generateSchedules.exitcode is not None:
+                    break
+                self.progressBar['value'] += 30
+        else:
+            ExcelCore.output_pool_of_schedule_to_excel(
+                ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
+                ExcelCore.FILENAME_POOL_TIMETABLE,
+                searchMode=self.__getMode(),
+                currentDay=self.calendar.get_date())
 
         openExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
 

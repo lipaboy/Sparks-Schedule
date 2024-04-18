@@ -19,7 +19,7 @@ class SparksScheduleSearch:
                eldermen: list[str] = None, # по идее всегда не None
                ghostmen: list[str] = None,
                undesirableDays: dict[str, list[int]] = None,
-               shiftCountPreferences: dict[str, int] = None,
+               shiftCountPreferences: dict[str, float] = None,
                prevSchedule: WeekScheduleExcelType = None,
                mode='part') -> list[WeekScheduleExcelType]:
 
@@ -29,8 +29,10 @@ class SparksScheduleSearch:
             self.__loadPreviousWeekSchedule(prevSchedule)
             if prevSchedule.Trucks is not None and len(prevSchedule.Trucks) > 0:
                 self._favor.truckDistribution = prevSchedule.Trucks
+        if shiftCountPreferences is not None:
+            self._favor.loadShiftCountsPrefs(shiftCountPreferences)
 
-        minDebatov = float(1e5)
+        minDebatov = float(1e7)
         ghostBestCount = 6
         ghostSchedulesBest = {minDebatov + i * 1.0: Schedule(self._favor.pairDayStart())
                               for i in range(ghostBestCount)}
@@ -56,7 +58,7 @@ class SparksScheduleSearch:
 
         """ Ищем расписание старших """
 
-        minDebatov = float(1e5)
+        minDebatov = float(1e7)
         elderBestCount = 2
         elderSchedulesBest = {minDebatov + i * 1.0: Schedule(self._favor.pairDayStart())
                               for i in range(elderBestCount)}
