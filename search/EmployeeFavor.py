@@ -1,3 +1,5 @@
+import copy
+
 from search.Schedule import Schedule
 from search.WeekScheduleExcelType import WeekScheduleExcelType, EmployeeCard, TruckDistributionType
 
@@ -53,9 +55,9 @@ class EmployeeFavor:
         self.ghostLimits = {
             1: 3.5,
             2: 3.5,
-            3: 3,
-            4: 3,
-            5: 1
+            3: 3.0,
+            4: 3.0,
+            5: 1.0
         }
         " Нежелательные дни духов "
         self.undesirableGhostDays = {
@@ -67,8 +69,8 @@ class EmployeeFavor:
         }
 
         self.elderLimits = {
-            1: 4,
-            2: 3,
+            1: 4.0,
+            2: 3.0,
         }
         " Нежелательные дни старших "
         self.undesirableElderDays = {
@@ -84,11 +86,32 @@ class EmployeeFavor:
 
         self._nameStringMaxLen = 6
 
-    def __parseWhoUnderTruck(self, schedule: Schedule, trucks: TruckDistributionType, day: int) -> str:
+    def loadShiftCountsPrefs(self, preferences: dict[str, float]):
+        for name, shiftAverage in preferences.items():
+            if name in self.elderNames.keys():
+                self.elderLimits[ self.elderNames[name] ] = shiftAverage
+            else:
+                self.ghostLimits[ self.ghostNames[name] ] = shiftAverage
+
+    def __getHalfShiftEmployee(self, schedule: Schedule, day: int) -> str:
+        if day in self.partTimeDays.keys():
+            return self._ghostNamesById[ schedule.getWorkersAtDay(day)[1][0] ]
+        else:
+            return ''
+
+    def __parseWhoUnderTruck(self,
+                             schedule: Schedule,
+                             trucks: TruckDistributionType, day: int) -> str:
+        """ Правило: ставим того за тачку, кто меньше всего за ней стоял
+            Нельзя ставить за тачку того, кто находится на полусмене (С2)
+        """
         elderId, ghostIdList = schedule.getWorkersAtDay(day)
         elder = self._elderNamesById[elderId]
-        names = [elder] + [self._ghostNamesById[w] for w in ghostIdList]
-        worker = min([(n, trucks[n]) for n in names], key=lambda x: x[1])
+        pretenderNames = [elder] + [self._ghostNamesById[w] for w in ghostIdList]
+        halfEmployee = self.__getHalfShiftEmployee(schedule, day)
+        if halfEmployee != '':
+            pretenderNames.remove(halfEmployee)
+        worker = min([(n, trucks[n]) for n in pretenderNames], key=lambda x: x[1])
         return worker[0]
 
     def __getNameForTruck(self, name, weekTrucks, day):
@@ -96,7 +119,7 @@ class EmployeeFavor:
 
     def toExcel(self, schedule: Schedule) -> WeekScheduleExcelType:
         employeeCards = list[EmployeeCard]()
-        trucks = self.truckDistribution
+        trucks = copy.deepcopy(self.truckDistribution)
 
         weekTrucks = []
         for day in self._week:

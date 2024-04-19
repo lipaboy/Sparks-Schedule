@@ -1,10 +1,13 @@
+import datetime
 import sys
 import tkinter as tk
 import os
+import traceback
 from multiprocessing import Process
 import threading
 from tkinter.constants import HORIZONTAL
 from tkinter.ttk import Progressbar
+import logging
 
 import psutil
 
@@ -20,9 +23,9 @@ def closeExcelDocumentProcess(excelFileName: str):
     for proc in processList:
         try:
             if 'excel' in proc.name().lower():
-                print(proc.name(), proc.pid, proc.cmdline(), proc.open_files())
+                # print(proc.name(), proc.pid, proc.cmdline(), proc.open_files())
                 if any(excelFileName in path.path for path in proc.open_files()):
-                    print("close " + proc.name())
+                    # print("close " + proc.name())
                     proc.kill()
         except psutil.AccessDenied:
             continue
@@ -67,8 +70,16 @@ class MainWindow:
         self.inputField = tk.Entry(fg="yellow", bg="purple", width=15)
 
         ttk.Label(text='Выберете неделю').pack(padx=10, pady=10)
-        self.calendar = DateEntry(width=12, background='darkblue',
-                                  foreground='white', borderwidth=2)
+        nextWeek = datetime.date.today() + datetime.timedelta(days=7)
+        self.calendar = DateEntry(width=12,
+                                  background='darkblue',
+                                  foreground='white',
+                                  borderwidth=2,
+                                  year=nextWeek.year,
+                                  month=nextWeek.month,
+                                  day=nextWeek.day
+                                  )
+        # self.calendar.config(date)
         self.calendar.pack(padx=10, pady=10)
         print(self.calendar.get_date())
 
@@ -93,19 +104,24 @@ class MainWindow:
         if scheduleNum.isdigit():
             if self.isDebug:
                 closeExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
-            ExcelCore.update_schedule_data_base(ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
-                                                ExcelCore.FILENAME_POOL_TIMETABLE,
-                                                int(scheduleNum))
-            if self.isDebug:
-                openExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
+            try:
+                ExcelCore.update_schedule_data_base(ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
+                                                    ExcelCore.FILENAME_POOL_TIMETABLE,
+                                                    int(scheduleNum))
+            except Exception:
+                self.statusLabel.config(text='Произошли ошибки', fg='#f00')
+                mainLogger.error(traceback.format_exc())
+            else:
+                if self.isDebug:
+                    openExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
 
-            self.chooseIdLabel.pack_forget()
-            self.inputField.pack_forget()
-            self.chooseScheduleButton.pack_forget()
-            self.helloLabel.config(text='Данные успешно сохранены!')
-            self.helloLabel.pack(expand=True)
-            self.statusLabel.config(text='', fg='#000')
-            self.statusLabel.pack_forget()
+                self.chooseIdLabel.pack_forget()
+                self.inputField.pack_forget()
+                self.chooseScheduleButton.pack_forget()
+                self.helloLabel.config(text='Данные успешно сохранены!')
+                self.helloLabel.pack(expand=True)
+                self.statusLabel.config(text='', fg='#000')
+                self.statusLabel.pack_forget()
         else:
             self.statusLabel.config(text='Неверный номер расписания', fg='#f00')
 
@@ -117,26 +133,27 @@ class MainWindow:
 
         closeExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
 
-        generateSchedules = Process(
-            target=ExcelCore.output_pool_of_schedule_to_excel,
-            args=(ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
-                  ExcelCore.FILENAME_POOL_TIMETABLE,
-                  self.__getMode(),
-                  self.calendar.get_date()),
-            daemon=True
-        )
-        generateSchedules.start()
-        while True:
-            generateSchedules.join(0.7 if self.__getMode() == 'full' else 0.1)
-            if generateSchedules.exitcode is not None:
-                break
-            self.progressBar['value'] += 30
-
-        # ExcelCore.output_pool_of_schedule_to_excel(
-        #     ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
-        #     ExcelCore.FILENAME_POOL_TIMETABLE,
-        #     searchMode=self.__getMode(),
-        #     currentDay=self.calendar.get_date())
+        if not self.isDebug:
+            generateSchedules = Process(
+                target=ExcelCore.output_pool_of_schedule_to_excel,
+                args=(ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
+                      ExcelCore.FILENAME_POOL_TIMETABLE,
+                      self.__getMode(),
+                      self.calendar.get_date()),
+                daemon=True
+            )
+            generateSchedules.start()
+            while True:
+                generateSchedules.join(0.7 if self.__getMode() == 'full' else 0.1)
+                if generateSchedules.exitcode is not None:
+                    break
+                self.progressBar['value'] += 30
+        else:
+            ExcelCore.output_pool_of_schedule_to_excel(
+                ExcelCore.FILENAME_SCHEDULE_DATA_BASE,
+                ExcelCore.FILENAME_POOL_TIMETABLE,
+                searchMode=self.__getMode(),
+                currentDay=self.calendar.get_date())
 
         openExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
 
@@ -158,5 +175,12 @@ class MainWindow:
 
 
 if __name__ == "__main__":
+    fileLogHandler = logging.FileHandler(filename='sparks.log', encoding="utf-8", mode="a")
+    fileLogHandler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    mainLogger = logging.getLogger(__name__)
+    mainLogger.setLevel(logging.INFO)
+    mainLogger.addHandler(logging.StreamHandler(sys.stdout))
+    mainLogger.addHandler(fileLogHandler)
+
     window = MainWindow(True if len(sys.argv) > 1 and sys.argv[1] == 'debug' else False)
     window.mainloop()

@@ -6,20 +6,21 @@ from search.EmployeeFavor import EmployeeFavor, WeekScheduleExcelType, TruckDist
 
 
 MODE_LIST = ['fast', 'part', 'full']
+DEBATOV_LIMIT = float(1e7)
 
 
 class SparksScheduleSearch:
     def calcNewTrucks(self, schedule: WeekScheduleExcelType) -> TruckDistributionType:
         newTrucks = schedule.Trucks
-        for name in newTrucks.keys():
-            newTrucks[name] += 1
+        for card in schedule.EmployeeCards:
+            newTrucks[card.Name] += card.truckCount()
         return newTrucks
 
     def search(self,
                eldermen: list[str] = None, # по идее всегда не None
                ghostmen: list[str] = None,
                undesirableDays: dict[str, list[int]] = None,
-               shiftCountPreferences: dict[str, int] = None,
+               shiftCountPreferences: dict[str, float] = None,
                prevSchedule: WeekScheduleExcelType = None,
                mode='part') -> list[WeekScheduleExcelType]:
 
@@ -29,8 +30,12 @@ class SparksScheduleSearch:
             self.__loadPreviousWeekSchedule(prevSchedule)
             if prevSchedule.Trucks is not None and len(prevSchedule.Trucks) > 0:
                 self._favor.truckDistribution = prevSchedule.Trucks
+        else:
+            self.clear()
+        if shiftCountPreferences is not None:
+            self._favor.loadShiftCountsPrefs(shiftCountPreferences)
 
-        minDebatov = float(1e5)
+        minDebatov = DEBATOV_LIMIT
         ghostBestCount = 6
         ghostSchedulesBest = {minDebatov + i * 1.0: Schedule(self._favor.pairDayStart())
                               for i in range(ghostBestCount)}
@@ -56,7 +61,7 @@ class SparksScheduleSearch:
 
         """ Ищем расписание старших """
 
-        minDebatov = float(1e5)
+        minDebatov = DEBATOV_LIMIT
         elderBestCount = 2
         elderSchedulesBest = {minDebatov + i * 1.0: Schedule(self._favor.pairDayStart())
                               for i in range(elderBestCount)}
@@ -109,39 +114,26 @@ class SparksScheduleSearch:
         """ Undesirable Days """
         undesirableDaysCount = 0
 
-        luba = schedule.calcLubaSchedule()
+        elders = schedule.getElders()
 
-        prevDay = -1
-        shiftRepeats = 1.0
-        for day in schedule.vovan:
-            """ The Longest Shift Repeats """
-            # если дни в расписании идут по порядку, значит есть непрерывная череда смен
-            if day == prevDay + 1:
-                shiftRepeats += 1
-                maxShiftRepeats = max(shiftRepeats, maxShiftRepeats)
-            else:
-                shiftRepeats = 1.0
-            prevDay = day
+        for elderId, shifts in elders.items():
+            prevDay = 0  # предыдущий день как будто есть, чтобы учитывать предыдущее расписание
+            shiftRepeats = self._prevWeekElderShiftRepeat[1] \
+                if elderId == self._prevWeekElderShiftRepeat[0] else 0.0
 
-            """ Undesirable Days """
-            if day in self._favor.undesirableElderDays[1]:
-                undesirableDaysCount += 1
+            for day in shifts:
+                """ The Longest Shift Repeats """
+                # если дни в расписании идут по порядку, значит есть непрерывная череда смен
+                if day == prevDay + 1:
+                    shiftRepeats += 1
+                    maxShiftRepeats = max(shiftRepeats, maxShiftRepeats)
+                else:
+                    shiftRepeats = 1.0
+                prevDay = day
 
-        prevDay = -1
-        shiftRepeats = 1.0
-        for day in luba:
-            """ The Longest Shift Repeats """
-            # если дни в расписании идут по порядку, значит есть непрерывная череда смен
-            if day == prevDay + 1:
-                shiftRepeats += 1
-                maxShiftRepeats = max(shiftRepeats, maxShiftRepeats)
-            else:
-                shiftRepeats = 1.0
-            prevDay = day
-
-            """ Undesirable Days """
-            if day in self._favor.undesirableElderDays[2]:
-                undesirableDaysCount += 1
+                """ Undesirable Days """
+                if day in self._favor.undesirableElderDays[elderId]:
+                    undesirableDaysCount += 1
 
         """ The Longest Turn Repeats """
         if maxShiftRepeats >= 3.0:
@@ -162,7 +154,7 @@ class SparksScheduleSearch:
 
         """ The Longest Turn Repeats """
         # вещественный, потому что длина смены может быть не целой величиной
-        shiftRepeats = self._prevWeekShiftRepeat.setdefault(schedule.ghostOneTime[0], 0.0)
+        shiftRepeats = self._prevWeekGhostShiftRepeat.setdefault(schedule.ghostOneTime[0], 0.0)
         ghostIdRepeat = schedule.ghostOneTime[0] if shiftRepeats > 0.0 + 1e-5 else -1
         maxShiftRepeat = 0.0
 
@@ -238,11 +230,26 @@ class SparksScheduleSearch:
 
     def __loadPreviousWeekSchedule(self,
                                    excelSchedule: WeekScheduleExcelType):
-        # todo: добавить проверку для старших
-
         prevSchedule = self._favor.fromExcel(excelSchedule)
         if self.debug:
             self._favor.print(prevSchedule)
+
+        """ Старшие """
+        elders = prevSchedule.getElders()
+        elderShiftDayRepeats = 0
+        elderId = 0
+        for id, shifts in elders.items():
+            if self._week[-1] in shifts:
+                elderShiftDayRepeats = 1
+                elderId = id
+                break
+        for day in list(reversed(self._week))[1:]:
+            if day in elders[elderId]:
+                elderShiftDayRepeats += 1
+            else:
+                break
+
+        self._prevWeekElderShiftRepeat = (elderId, elderShiftDayRepeats)
 
         """ The Longest Turn Repeats """
         shiftRepeats = self._shiftLenByDay[-1]
@@ -270,11 +277,11 @@ class SparksScheduleSearch:
             if readySecond and readyFirst:
                 break
 
-        self._prevWeekShiftRepeat[ghostIdRepeat] = shiftRepeats
-        self._prevWeekShiftRepeat[secondGhostIdRepeat] = secondShiftRepeats
+        self._prevWeekGhostShiftRepeat[ghostIdRepeat] = shiftRepeats
+        self._prevWeekGhostShiftRepeat[secondGhostIdRepeat] = secondShiftRepeats
 
     def clear(self):
-        self._prevWeekShiftRepeat = dict[int, float]()
+        self._prevWeekGhostShiftRepeat = dict[int, float]()
 
     def __init__(self):
         self._favor = EmployeeFavor()
@@ -287,7 +294,8 @@ class SparksScheduleSearch:
         """ Коэффициент дебатов, когда сотрудник выходит на смену в не желаемый день"""
         self.undesirableDayCoef = 4
 
-        self._prevWeekShiftRepeat = dict[int, float]()
+        self._prevWeekGhostShiftRepeat = dict[int, float]()
+        self._prevWeekElderShiftRepeat = (-1, 0)
 
         self._week = range(1, 7 + 1)
         self._oneTimeWeek = range(1, len(self._schedule.ghostOneTime) + 1)
