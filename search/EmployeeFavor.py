@@ -93,6 +93,9 @@ class EmployeeFavor:
         self.elderNames.clear()
         self._elderNamesById.clear()
         for name, id in zip(eldermen, range(1, len(eldermen) + 1)):
+            # name = name.strip()
+            if len(name) <= 0:
+                continue
             self.elderNames[name] = id
             self._elderNamesById[id] = name
 
@@ -100,6 +103,9 @@ class EmployeeFavor:
         self.ghostNames.clear()
         self._ghostNamesById.clear()
         for name, id in zip(ghostmen, range(1, len(ghostmen) + 1)):
+            # name = name.strip()
+            if len(name) <= 0:
+                continue
             self.ghostNames[name] = id
             self._ghostNamesById[id] = name
 
