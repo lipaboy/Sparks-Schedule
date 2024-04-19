@@ -31,9 +31,6 @@ def formatting_cell(sheet, row, column, value, fontSize, fontName, fontBold, fon
 
 def get_dated_week(mode=0, currentDay: datetime.date = datetime.date.today()): #it gives dated week, that begin next monday
     if mode == 0:
-        date_1 = datetime.date(2024, 2, 29)
-        date_2 = datetime.date(2024, 2, 28)
-        delta_day = date_1 - date_2
         months = {
         1: 'Янв.',
         2: 'Февр.',
@@ -47,6 +44,7 @@ def get_dated_week(mode=0, currentDay: datetime.date = datetime.date.today()): #
         10: 'Окт.',
         11: 'Нояб.',
         12: 'Дек.'}
+        delta_day = datetime.timedelta(days=1)
         current_date = currentDay #current_date = datetime.date(2024, 11, 14)
         current_date -= current_date.weekday() * delta_day #It gives current week that begin on Monday
         # current_date += (WEEK_LENGTH-current_date.weekday()) * delta_day #It gives next week that begin on Monday
@@ -64,10 +62,7 @@ def get_dated_week(mode=0, currentDay: datetime.date = datetime.date.today()): #
             5: "ПТ",
             6: "СБ",
             7: "ВС"}
-        datedWeek = list()
-        for i in range(1, WEEK_LENGTH+1):
-            datedWeek.append(f"{daysWeek[i]}")
-        return datedWeek
+        return list(daysWeek.values())
     else:
         print(ERROR_STR_HEAD + "! (get_dated_week)\n\t\tThe wrong mode!")
         return None
@@ -261,7 +256,7 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
     lengthOfPool = len(timeTable)
     return lengthOfPool
 
-def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, numChoosingTimetable):#TODO add update for trucks
+def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, numChoosingTimetable):
     #Init
     wbSceduleDataBase = openpyxl.load_workbook(filename = filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[0]
@@ -542,3 +537,4 @@ if __name__ == "__main__":
     localFilenameScheduleDataBase = "../" + FILENAME_SCHEDULE_DATA_BASE
     localFilenamePoolTimetable = "../" + FILENAME_POOL_TIMETABLE
     check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
+    
