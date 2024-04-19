@@ -1,3 +1,4 @@
+import datetime
 import sys
 import tkinter as tk
 import os
@@ -67,8 +68,16 @@ class MainWindow:
         self.inputField = tk.Entry(fg="yellow", bg="purple", width=15)
 
         ttk.Label(text='Выберете неделю').pack(padx=10, pady=10)
-        self.calendar = DateEntry(width=12, background='darkblue',
-                                  foreground='white', borderwidth=2)
+        nextWeek = datetime.date.today() + datetime.timedelta(days=7)
+        self.calendar = DateEntry(width=12,
+                                  background='darkblue',
+                                  foreground='white',
+                                  borderwidth=2,
+                                  year=nextWeek.year,
+                                  month=nextWeek.month,
+                                  day=nextWeek.day
+                                  )
+        # self.calendar.config(date)
         self.calendar.pack(padx=10, pady=10)
         print(self.calendar.get_date())
 
