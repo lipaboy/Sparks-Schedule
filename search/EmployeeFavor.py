@@ -1,3 +1,5 @@
+import copy
+
 from search.Schedule import Schedule
 from search.WeekScheduleExcelType import WeekScheduleExcelType, EmployeeCard, TruckDistributionType
 
@@ -117,7 +119,7 @@ class EmployeeFavor:
 
     def toExcel(self, schedule: Schedule) -> WeekScheduleExcelType:
         employeeCards = list[EmployeeCard]()
-        trucks = self.truckDistribution
+        trucks = copy.deepcopy(self.truckDistribution)
 
         weekTrucks = []
         for day in self._week:

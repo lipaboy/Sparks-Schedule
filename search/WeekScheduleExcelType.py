@@ -16,6 +16,9 @@ class EmployeeCard:
         """ Смены сотрудника """
         self.Shifts = shifts
 
+    def truckCount(self) -> int:
+        return len(list(filter(lambda x: x[2] == 'Truck', self.Shifts)))
+
 """ Формат выгрузки в эксель модуль. Один ExcelType - это одно расписание """
 
 # employee name -> truck count

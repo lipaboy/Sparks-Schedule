@@ -12,8 +12,8 @@ DEBATOV_LIMIT = float(1e7)
 class SparksScheduleSearch:
     def calcNewTrucks(self, schedule: WeekScheduleExcelType) -> TruckDistributionType:
         newTrucks = schedule.Trucks
-        for name in newTrucks.keys():
-            newTrucks[name] += 1
+        for card in schedule.EmployeeCards:
+            newTrucks[card.Name] += card.truckCount()
         return newTrucks
 
     def search(self,
