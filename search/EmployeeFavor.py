@@ -32,10 +32,13 @@ class EmployeeFavor:
         self.elderNames = dict[str, int]()
 
         for name, id in self.namesDB.items():
-            if name in self.whoElders:
-                self.elderNames[name] = id - 5 # костылёк
-            else:
+            if name not in self.whoElders:
                 self.ghostNames[name] = id
+
+        maxGhostId = len(self.ghostNames)
+        for name, id in self.namesDB.items():
+            if name in self.whoElders:
+                self.elderNames[name] = id - maxGhostId
 
         self._ghostNamesById = {v: k for k, v in self.ghostNames.items()}
         self._elderNamesById = {v: k for k, v in self.elderNames.items()}
@@ -85,6 +88,20 @@ class EmployeeFavor:
                            if i in self.partTimeDays else 1.0 for i in self._week]
 
         self._nameStringMaxLen = 6
+
+    def loadEldermen(self, eldermen: list[str]):
+        self.elderNames.clear()
+        self._elderNamesById.clear()
+        for name, id in zip(eldermen, range(1, len(eldermen) + 1)):
+            self.elderNames[name] = id
+            self._elderNamesById[id] = name
+
+    def loadGhostmen(self, ghostmen: list[str]):
+        self.ghostNames.clear()
+        self._ghostNamesById.clear()
+        for name, id in zip(ghostmen, range(1, len(ghostmen) + 1)):
+            self.ghostNames[name] = id
+            self._ghostNamesById[id] = name
 
     def loadShiftCountsPrefs(self, preferences: dict[str, float]):
         for name, shiftAverage in preferences.items():
@@ -174,11 +191,15 @@ class EmployeeFavor:
         for card in excelSchedule.EmployeeCards:
             # skip eldermen
             if card.IsElder:
+                if card.Name not in self.elderNames.keys():
+                    continue
                 elderCard = card
                 elderId = self.elderNames[elderCard.Name]
                 for day, shiftLen, _ in elderCard.Shifts:
                         schedule.getElders()[elderId].append(day)
             else:
+                if card.Name not in self.ghostNames.keys():
+                    continue
                 ghostCard = card
                 ghostId = self.ghostNames[ghostCard.Name]
                 for day, shiftLen, _ in ghostCard.Shifts:
@@ -209,7 +230,7 @@ class EmployeeFavor:
             id: [] for _, id in self.ghostNames.items()
         }
         for name, days in undesirables.items():
-            if name in self.whoElders:
+            if name in self.elderNames.keys():
                 self.undesirableElderDays[self.elderNames[name]] = days
             else:
                 self.undesirableGhostDays[self.ghostNames[name]] = days
