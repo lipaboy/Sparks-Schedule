@@ -183,13 +183,12 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
     #Init
     sparks = SparksScheduleSearch()
     _prevSchedule = get_schedule_data_base(filenameSceduleDataBase)
-    _schedule = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase)
-    _prevSchedule.Trucks = _schedule.Trucks
+    _prevTrucks = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase)
+    _prevSchedule.Trucks = _prevTrucks.Trucks
     timeTable = sparks.search(eldermen=elders,
                               ghostmen=ghosts,
                               undesirableDays=get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase),
                               shiftCountPreferences=get_schedule_data_base_staff_and_hall(filenameSceduleDataBase),
-                              # prevSchedule=get_schedule_data_base(filenameSceduleDataBase),
                               prevSchedule=_prevSchedule,
                               mode=searchMode) #'fast', 'part', 'full'
     wb = openpyxl.Workbook()
@@ -541,4 +540,3 @@ if __name__ == "__main__":
     localFilenameScheduleDataBase = "../" + FILENAME_SCHEDULE_DATA_BASE
     localFilenamePoolTimetable = "../" + FILENAME_POOL_TIMETABLE
     check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
-    
