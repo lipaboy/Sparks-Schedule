@@ -24,6 +24,10 @@ class SparksScheduleSearch:
                prevSchedule: WeekScheduleExcelType = None,
                mode='part') -> list[WeekScheduleExcelType]:
 
+        if eldermen is not None and len(eldermen) > 0:
+            self._favor.loadEldermen(eldermen)
+        if ghostmen is not None and len(ghostmen) > 0:
+            self._favor.loadGhostmen(ghostmen)
         if undesirableDays is not None:
             self._favor.loadUndesirables(undesirableDays)
         if prevSchedule is not None:
