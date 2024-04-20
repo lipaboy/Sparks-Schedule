@@ -164,6 +164,38 @@ def init_schedule_data_base(filenameSceduleDataBase):
             sheet.cell(row=startingPointRow + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, bottom=THIN_BORDER)
             columnCursor += 1
         sheet.cell(row=startingPointRow + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER)
+    #Init List COEFFICIENTS
+    startingPointColumn = 1
+    startingPointRow = 1
+    wbSceduleDataBase.create_sheet("Коэффиценты")
+    sheet = wbSceduleDataBase.worksheets[2]
+    # """ Коэффициент дебатов для непрерывный череды смен"""
+    # self.shiftRepeatCoef = 10
+    # """ Коэффициент дебатов для разницы между реальным количеством смен и желаемым для сотрудника"""
+    # self.differInShiftsCoef = 2.1
+    # """ Коэффициент дебатов, когда сотрудник выходит на смену в не желаемый день"""
+    # self.undesirableDayCoef = 4
+    #Cell shiftRepeatCoef
+    columnCursor = startingPointColumn
+    sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = 2 * TABLE_1_COLUMN_WIDTH
+    formatting_cell(sheet, startingPointRow, columnCursor, "shiftRepeatCoef", 14, "Times New Roman", True, False, "center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(left=THICK_BORDER, right=THICK_BORDER, bottom=THICK_BORDER)
+    formatting_cell(sheet, startingPointRow+1, columnCursor, 10, 14, "Times New Roman", False, False, "center", "center")
+    sheet.cell(row=startingPointRow+1, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER)
+    #Cell differInShiftsCoef
+    columnCursor += 1
+    sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = 2 * TABLE_1_COLUMN_WIDTH
+    formatting_cell(sheet, startingPointRow, columnCursor, "differInShiftsCoef", 14, "Times New Roman", True, False, "center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
+    formatting_cell(sheet, startingPointRow + 1, columnCursor, 2.1, 14, "Times New Roman", False, False, "center", "center")
+    sheet.cell(row=startingPointRow+1, column=columnCursor).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
+    #Cell undesirableDayCoef
+    columnCursor += 1
+    sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = 2 * TABLE_1_COLUMN_WIDTH
+    formatting_cell(sheet, startingPointRow, columnCursor, "undesirableDayCoef", 14, "Times New Roman", True, False, "center", "center")
+    sheet.cell(row=startingPointRow, column=columnCursor).border = openpyxl.styles.Border(right=THICK_BORDER, bottom=THICK_BORDER)
+    formatting_cell(sheet, startingPointRow + 1, columnCursor, 4, 14, "Times New Roman", False, False, "center", "center")
+    sheet.cell(row=startingPointRow+1, column=columnCursor).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
     #Save
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\n\tFile '{filenameSceduleDataBase}' was created!")
@@ -183,8 +215,9 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
     #Init
     sparks = SparksScheduleSearch()
     _prevSchedule = get_schedule_data_base(filenameSceduleDataBase)
-    _prevTrucks = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase)
-    _prevSchedule.Trucks = _prevTrucks.Trucks
+    _prevSchedule.Trucks = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase).Trucks
+    # _prevTrucks = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase) #For function that return data
+    # _prevSchedule.Trucks = _prevTrucks.Trucks
     timeTable = sparks.search(eldermen=elders,
                               ghostmen=ghosts,
                               undesirableDays=get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase),
@@ -368,7 +401,7 @@ def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None
                         14, "Times New Roman", False, False, "center", "center")#IsElder
         formatting_cell(sheetStaff, staffPointRow + i, staffPointColumn+2, 0,
                         14, "Times New Roman", False, False, "center", "center")#NumOfTruck
-        formatting_cell(sheetStaff, staffPointRow + i, staffPointColumn+3, 0.0,
+        formatting_cell(sheetStaff, staffPointRow + i, staffPointColumn+3, 3.0,
                         14, "Times New Roman", False, False, "center", "center")  # NumOfHall
         sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
         sheetStaff.cell(row=staffPointRow + i, column=staffPointColumn+1).border = openpyxl.styles.Border(right=THIN_BORDER, bottom=THIN_BORDER)
@@ -394,6 +427,8 @@ def get_schedule_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-1):#T
         else:
             print(ERROR_STR_HEAD + "! (get_schedule_data_base)\n\t\tOut of range!!!") #it gives the last schedule in DB
         return None
+        # outputEmptySchedule = WeekScheduleExcelType()
+        # return outputEmptySchedule
     #Init tables parameters
     tableWidth = 1 + 7 + SPACE_BETWEEN_TABLES  # +1 - begin from 1; 7 - week length; +1 - space between tables
     startingPointColumn = 1 + ((selectedNumber-1) * tableWidth)
@@ -451,6 +486,11 @@ def get_schedule_data_base_staff_and_truck(filenameSceduleDataBase):
         else:
             data.Trucks[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = sheet.cell(row=startingPointRow+j, column=startingPointColumn+stepToTruck).value
         j += 1
+    if j == 0:
+        print(ERROR_STR_HEAD+"! (get_schedule_data_base_staff_and_truck) Empty data base of trucks!")
+        return None
+        # outputEmptySchedule = WeekScheduleExcelType()
+        # return outputEmptySchedule
     return data
 
 def get_schedule_data_base_staff_and_hall(filenameSceduleDataBase):
@@ -484,6 +524,18 @@ def get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase):
                 undesirableDays.append(i+1)
         data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = undesirableDays
         j += 1
+    return data
+
+def get_schedule_data_base_coefficients(filenameSceduleDataBase):
+    wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
+    sheet = wbSceduleDataBase.worksheets[2]
+    data = dict()
+    startingPointColumn = 1
+    startingPointRow = 1
+    i = 0
+    while sheet.cell(row=startingPointRow, column=startingPointColumn+i).value != None:
+        data[sheet.cell(row=startingPointRow, column=startingPointColumn+i).value] = sheet.cell(row=startingPointRow+1, column=startingPointColumn+i).value
+        i += 1
     return data
 
 def check_output_and_update_schedule(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"):#TEST FUNCTION!!!
@@ -539,4 +591,7 @@ def check_full(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"
 if __name__ == "__main__":
     localFilenameScheduleDataBase = "../" + FILENAME_SCHEDULE_DATA_BASE
     localFilenamePoolTimetable = "../" + FILENAME_POOL_TIMETABLE
-    check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
+    # check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
+    data = get_schedule_data_base_coefficients(localFilenameScheduleDataBase)
+    print("\n\tКоэффициенты:", end=" ")
+    print(data)
