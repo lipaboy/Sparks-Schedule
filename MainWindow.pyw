@@ -112,8 +112,8 @@ class MainWindow:
                 self.statusLabel.config(text='Произошли ошибки', fg='#f00')
                 mainLogger.error(traceback.format_exc())
             else:
-                if self.isDebug:
-                    openExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
+                # if self.isDebug:
+                openExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
 
                 self.chooseIdLabel.pack_forget()
                 self.inputField.pack_forget()
@@ -124,7 +124,6 @@ class MainWindow:
                 self.statusLabel.pack_forget()
         else:
             self.statusLabel.config(text='Неверный номер расписания', fg='#f00')
-
 
     def makeScheduleRequest(self):
         """"""
