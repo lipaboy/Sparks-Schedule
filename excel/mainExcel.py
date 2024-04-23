@@ -216,8 +216,6 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
     sparks = SparksScheduleSearch()
     _prevSchedule = get_schedule_data_base(filenameSceduleDataBase)
     _prevSchedule.Trucks = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase).Trucks
-    # _prevTrucks = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase) #For function that return data
-    # _prevSchedule.Trucks = _prevTrucks.Trucks
     timeTable = sparks.search(eldermen=elders,
                               ghostmen=ghosts,
                               undesirableDays=get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase),
@@ -320,24 +318,29 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
         sheet.cell(row=startingPointRow, column=startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).border)
         sheet.cell(row=startingPointRow, column=startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).fill)
     poolTable = WeekScheduleExcelType() #For calcNewTrucks()
-    for i in range(1, tableHeight-SPACE_BETWEEN_TABLES):#Other
-        bufferName = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn).value#For calcNewTrucks()
-        bufferIsElder = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn).font.b#For calcNewTrucks()
-        bufferShifts = list[ShiftType]()#For calcNewTrucks()
-        for j in range(tableWidth-SPACE_BETWEEN_TABLES):
-            if poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value != CHAR_CROSS:#For calcNewTrucks()
-                if poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_TRUCK:#For calcNewTrucks()
-                    bufferShifts.append((j, 1.0, "Truck"))#For calcNewTrucks()
-                elif poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_HALL:#For calcNewTrucks()
-                    bufferShifts.append((j, 1.0, "Hall"))#For calcNewTrucks()
-                elif poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_HALF_HALL:#For calcNewTrucks()
-                    bufferShifts.append((j, 0.5, "Hall"))#For calcNewTrucks()
-            sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).value = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).value
-            sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).font)
-            sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
-            sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
-            sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
-        poolTable.EmployeeCards.append(EmployeeCard(name=bufferName, isElder=bufferIsElder, shifts=bufferShifts))#For calcNewTrucks()
+    try:
+        for i in range(1, tableHeight-SPACE_BETWEEN_TABLES):#Other
+            bufferName = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn).value#For calcNewTrucks()
+            bufferIsElder = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn).font.b#For calcNewTrucks()
+            bufferShifts = list[ShiftType]()#For calcNewTrucks()
+            for j in range(tableWidth-SPACE_BETWEEN_TABLES):
+                if poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value != CHAR_CROSS:#For calcNewTrucks()
+                    if poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_TRUCK:#For calcNewTrucks()
+                        bufferShifts.append((j, 1.0, "Truck"))#For calcNewTrucks()
+                    elif poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_HALL:#For calcNewTrucks()
+                        bufferShifts.append((j, 1.0, "Hall"))#For calcNewTrucks()
+                    elif poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_HALF_HALL:#For calcNewTrucks()
+                        bufferShifts.append((j, 0.5, "Hall"))#For calcNewTrucks()
+                sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).value = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).value
+                sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).font)
+                sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
+                sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
+                sheet.cell(row=startingPointRow + i, column=startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
+            poolTable.EmployeeCards.append(EmployeeCard(name=bufferName, isElder=bufferIsElder, shifts=bufferShifts))#For calcNewTrucks()
+    except:
+        print(f"{ERROR_STR_HEAD} (update_schedule_data_base)! Empty cell!")
+        # raise
+        return 0
     sheet.cell(row=1, column=1).value = sheet.cell(row=1, column=1).value + 1  # number of week schedule + 1 after added
     sheet.cell(row=startingPointRow, column=startingPointColumn).value = "№ " + str(sheet.cell(row=1, column=1).value)
     #Fill Truck
@@ -359,6 +362,7 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
     #Save DB's file
     wbSceduleDataBase.save(filenameSceduleDataBase)
     print(f"\nPool schedule number {numChoosingTimetable} was added to Schedule Data Base '{filenameSceduleDataBase}'")
+    return 1
 
 def update_schedule_data_base_staff(filenameSceduleDataBase, poolOfNewStaff=None, numOfSelectedSchedule=-1):#TODO Потенциально не нужно
     #Check the 2nd parameter
@@ -529,13 +533,20 @@ def get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase):
 def get_schedule_data_base_coefficients(filenameSceduleDataBase):
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[2]
+    # """ Коэффициент дебатов для непрерывный череды смен""" self.shiftRepeatCoef = 10
+    # """ Коэффициент дебатов для разницы между реальным количеством смен и желаемым для сотрудника""" self.differInShiftsCoef = 2.1
+    # """ Коэффициент дебатов, когда сотрудник выходит на смену в не желаемый день""" self.undesirableDayCoef = 4
+    listCoef = ["shiftRepeatCoef", "differInShiftsCoef", "undesirableDayCoef"]
     data = dict()
     startingPointColumn = 1
     startingPointRow = 1
     i = 0
-    while sheet.cell(row=startingPointRow, column=startingPointColumn+i).value != None:
-        data[sheet.cell(row=startingPointRow, column=startingPointColumn+i).value] = sheet.cell(row=startingPointRow+1, column=startingPointColumn+i).value
+    for nameCoef in listCoef:
+        data[nameCoef] = sheet.cell(row=startingPointRow+1, column=startingPointColumn+i).value
         i += 1
+    # while sheet.cell(row=startingPointRow, column=startingPointColumn+i).value != None:
+    #     data[sheet.cell(row=startingPointRow, column=startingPointColumn+i).value] = sheet.cell(row=startingPointRow+1, column=startingPointColumn+i).value
+    #     i += 1
     return data
 
 def check_output_and_update_schedule(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"):#TEST FUNCTION!!!
@@ -591,7 +602,4 @@ def check_full(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"
 if __name__ == "__main__":
     localFilenameScheduleDataBase = "../" + FILENAME_SCHEDULE_DATA_BASE
     localFilenamePoolTimetable = "../" + FILENAME_POOL_TIMETABLE
-    # check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
-    data = get_schedule_data_base_coefficients(localFilenameScheduleDataBase)
-    print("\n\tКоэффициенты:", end=" ")
-    print(data)
+    check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
