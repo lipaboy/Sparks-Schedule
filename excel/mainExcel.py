@@ -218,11 +218,13 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
     _prevSchedule.Trucks = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase).Trucks
     # _prevTrucks = get_schedule_data_base_staff_and_truck(filenameSceduleDataBase) #For function that return data
     # _prevSchedule.Trucks = _prevTrucks.Trucks
+    coefs = get_schedule_data_base_coefficients(filenameSceduleDataBase)
     timeTable = sparks.search(eldermen=elders,
                               ghostmen=ghosts,
                               undesirableDays=get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase),
                               shiftCountPreferences=get_schedule_data_base_staff_and_hall(filenameSceduleDataBase),
                               prevSchedule=_prevSchedule,
+                              coeficiencies=coefs,
                               mode=searchMode) #'fast', 'part', 'full'
     wb = openpyxl.Workbook()
     sheet = wb.worksheets[0]
@@ -526,10 +528,10 @@ def get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase):
         j += 1
     return data
 
-def get_schedule_data_base_coefficients(filenameSceduleDataBase):
+def get_schedule_data_base_coefficients(filenameSceduleDataBase) -> dict[str, float]:
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[2]
-    data = dict()
+    data = dict[str, float]()
     startingPointColumn = 1
     startingPointRow = 1
     i = 0
