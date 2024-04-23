@@ -529,13 +529,20 @@ def get_schedule_data_base_staff_and_undesirable_days(filenameSceduleDataBase):
 def get_schedule_data_base_coefficients(filenameSceduleDataBase):
     wbSceduleDataBase = openpyxl.load_workbook(filename=filenameSceduleDataBase)
     sheet = wbSceduleDataBase.worksheets[2]
+    # """ Коэффициент дебатов для непрерывный череды смен""" self.shiftRepeatCoef = 10
+    # """ Коэффициент дебатов для разницы между реальным количеством смен и желаемым для сотрудника""" self.differInShiftsCoef = 2.1
+    # """ Коэффициент дебатов, когда сотрудник выходит на смену в не желаемый день""" self.undesirableDayCoef = 4
+    listCoef = ["shiftRepeatCoef", "differInShiftsCoef", "undesirableDayCoef"]
     data = dict()
     startingPointColumn = 1
     startingPointRow = 1
     i = 0
-    while sheet.cell(row=startingPointRow, column=startingPointColumn+i).value != None:
-        data[sheet.cell(row=startingPointRow, column=startingPointColumn+i).value] = sheet.cell(row=startingPointRow+1, column=startingPointColumn+i).value
+    for nameCoef in listCoef:
+        data[nameCoef] = sheet.cell(row=startingPointRow+1, column=startingPointColumn+i).value
         i += 1
+    # while sheet.cell(row=startingPointRow, column=startingPointColumn+i).value != None:
+    #     data[sheet.cell(row=startingPointRow, column=startingPointColumn+i).value] = sheet.cell(row=startingPointRow+1, column=startingPointColumn+i).value
+    #     i += 1
     return data
 
 def check_output_and_update_schedule(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"):#TEST FUNCTION!!!
