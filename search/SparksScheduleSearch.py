@@ -22,7 +22,8 @@ class SparksScheduleSearch:
                undesirableDays: dict[str, list[int]] = None,
                shiftCountPreferences: dict[str, float] = None,
                prevSchedule: WeekScheduleExcelType = None,
-               mode='part') -> list[WeekScheduleExcelType]:
+               coeficiencies: dict[str, float] = None,
+               mode=MODE_LIST[1]) -> list[WeekScheduleExcelType]:
 
         if eldermen is not None and len(eldermen) > 0:
             self._favor.loadEldermen(eldermen)
@@ -30,14 +31,18 @@ class SparksScheduleSearch:
             self._favor.loadGhostmen(ghostmen)
         if undesirableDays is not None:
             self._favor.loadUndesirables(undesirableDays)
+        if shiftCountPreferences is not None:
+            self._favor.loadShiftCountsPrefs(shiftCountPreferences)
         if prevSchedule is not None:
             self.__loadPreviousWeekSchedule(prevSchedule)
             if prevSchedule.Trucks is not None and len(prevSchedule.Trucks) > 0:
                 self._favor.truckDistribution = prevSchedule.Trucks
         else:
             self.clear()
-        if shiftCountPreferences is not None:
-            self._favor.loadShiftCountsPrefs(shiftCountPreferences)
+        if coeficiencies is not None:
+            self.shiftRepeatCoef = coeficiencies['shiftRepeatCoef']
+            self.differInShiftsCoef = coeficiencies['differInShiftsCoef']
+            self.undesirableDayCoef = coeficiencies['undesirableDayCoef']
 
         minDebatov = DEBATOV_LIMIT
         ghostBestCount = 6
