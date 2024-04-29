@@ -1,5 +1,7 @@
 import copy
 import itertools
+import time
+import logging
 
 from search.Schedule import Schedule
 from search.EmployeeFavor import EmployeeFavor, WeekScheduleExcelType, TruckDistributionType
@@ -25,10 +27,13 @@ class SparksScheduleSearch:
                coeficiencies: dict[str, float] = None,
                mode=MODE_LIST[1]) -> list[WeekScheduleExcelType]:
 
+        _startMeasure = time.time()
+
         if eldermen is not None and len(eldermen) > 0:
             self._favor.loadEldermen(eldermen)
         if ghostmen is not None and len(ghostmen) > 0:
             self._favor.loadGhostmen(ghostmen)
+            self._schedule.ghostCount = len(ghostmen)
         if undesirableDays is not None:
             self._favor.loadUndesirables(undesirableDays)
         if shiftCountPreferences is not None:
@@ -105,6 +110,11 @@ class SparksScheduleSearch:
                 i -= 1
                 self._favor.print(s)
                 print()
+
+        # todo не работает
+        logger = logging.getLogger(__name__)
+        logger.info(f"Время работы: {time.time() - _startMeasure:.2f}s")
+        print(f"Время работы: {time.time() - _startMeasure:.2f}s")
 
         return [self._favor.toExcel(s) for s in commonSchedules]
     """"""
