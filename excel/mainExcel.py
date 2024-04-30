@@ -3,9 +3,7 @@ import datetime
 import copy
 import os
 from search.SparksScheduleSearch import SparksScheduleSearch
-from search.WeekScheduleExcelType import ShiftType
-from search.WeekScheduleExcelType import EmployeeCard
-from search.WeekScheduleExcelType import WeekScheduleExcelType
+from search.WeekScheduleExcelType import WeekScheduleExcelType, EmployeeCard, ShiftType, TruckDistributionType, TruckElem
 
 FILENAME_SCHEDULE_DATA_BASE = "ScheduleDataBase.xlsx"
 FILENAME_POOL_TIMETABLE = "PoolTimetable.xlsx"
@@ -249,7 +247,10 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
     #Init
     sparks = SparksScheduleSearch()
     _prevSchedule = get_schedule_list_data_base(filenameSceduleDataBase)
-    _prevSchedule.Trucks = get_schedule_list_staff(filenameSceduleDataBase, 2).Trucks
+    if _prevSchedule != None:
+        truck = get_schedule_list_staff(filenameSceduleDataBase, 2)
+        shift = get_schedule_list_staff(filenameSceduleDataBase, 3)
+        _prevSchedule.Trucks = {name: TruckElem(truck[name], shift[name]) for name in truck.keys()}
     coefs = get_schedule_list_coefficients(filenameSceduleDataBase)
     timeTable = sparks.search(eldermen=elders,
                               ghostmen=ghosts,
@@ -462,9 +463,7 @@ def get_schedule_list_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-
             print(ERROR_STR_HEAD + "! (get_schedule_list_data_base)\n\t\tEmpty data base!!!")  # it gives the last schedule in DB
         else:
             print(ERROR_STR_HEAD + "! (get_schedule_list_data_base)\n\t\tOut of range!!!") #it gives the last schedule in DB
-        outputEmptySchedule = WeekScheduleExcelType()
-        return outputEmptySchedule
-        # return None
+        return None
     #Init tables parameters
     tableWidth = 1 + 7 + SPACE_BETWEEN_TABLES  # +1 - begin from 1; 7 - week length; +1 - space between tables
     startingPointColumn = STARTING_POINT_SCHEDULE_DATA_BASE["List DB"]["column"] + ((selectedNumber-1) * tableWidth)
@@ -493,7 +492,7 @@ def get_schedule_list_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-
             outputSchedule.EmployeeCards.append(EmployeeCard(name=bufferName, isElder=bufferIsElder, shifts=bufferShifts))
     except:
         print(f"{ERROR_STR_HEAD} (get_schedule_list_data_base)! Empty cell. Upper's error!")
-        return 0
+        return None
     else:
         return outputSchedule
 
@@ -505,7 +504,7 @@ def get_schedule_list_staff(filenameSceduleDataBase, numOfColumn = 1): #1 - NAME
     stepToSelectColumn = numOfColumn
 
     if numOfColumn == 1:
-        data = dict()
+        data = dict[str, bool]()
         j = 0
         while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
             if sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToSelectColumn).value == "+":
@@ -514,21 +513,19 @@ def get_schedule_list_staff(filenameSceduleDataBase, numOfColumn = 1): #1 - NAME
                 data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = False
             j += 1
     elif numOfColumn == 2:
-        data = WeekScheduleExcelType()
+        data = dict[str, int]()
         j = 0
         while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
             if sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToSelectColumn).value == None:
-                data.Trucks[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = 0
+                data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = 0
             else:
-                data.Trucks[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToSelectColumn).value
+                data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToSelectColumn).value
             j += 1
         if j == 0:
             print(ERROR_STR_HEAD + "! (get_schedule_list_staff(numOfColumn = 2) Empty data base of trucks!")
-            # outputEmptySchedule = WeekScheduleExcelType()
-            # return outputEmptySchedule
             return None
     elif numOfColumn == 3 or numOfColumn == 4:
-        data = dict()
+        data = dict()#dict[str, int] for 3; dict[str, float] for 4
         j = 0
         while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
             if sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToSelectColumn).value == None:

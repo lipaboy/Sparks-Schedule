@@ -22,13 +22,12 @@ class EmployeeCard:
 """ Формат выгрузки в эксель модуль. Один ExcelType - это одно расписание """
 
 class TruckElem:
-    def __init__(self):
-        self.Trucks = 0
-        self.Shifts = 0
+    def __init__(self, trucksCount=0, shiftsCount=0):
+        self.Trucks = trucksCount
+        self.Shifts = shiftsCount
 
 # employee name -> truck count
-TruckDistributionType = dict[str, int]
-TruckDistributionType2 = dict[str, TruckElem]
+TruckDistributionType = dict[str, TruckElem]
 
 class WeekScheduleExcelType:
     def __init__(self,
