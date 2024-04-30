@@ -11,7 +11,7 @@ import logging
 
 import psutil
 
-import excel.mainExcel as ExcelCore
+import excel.ExcelCore as ExcelCore
 from tkcalendar import Calendar, DateEntry
 from tkinter import ttk
 
