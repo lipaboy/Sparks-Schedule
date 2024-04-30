@@ -42,7 +42,7 @@ CHAR_CROSS = '✕' #'✖'
 CHAR_HALL = 'С' #RUS С
 CHAR_HALF_HALL = 'С2' #RUS С
 CHAR_TRUCK = 'Т' #RUS Т
-ERROR_STR_HEAD = "\n\t**ERROR in EXCEL CORE"#! (numOfFunction)\n\t\t
+ERROR_STR_HEAD = "\n\t**ERROR in excel.ExcelCore"#! (numOfFunction)\n\t\t
 
 def formatting_cell(sheet, row, column, value, fontSize, fontName, fontBold, fontItalic, alignmentHorizontal, alignmentVertical):
     sheet.cell(row=row, column=column).value = value
@@ -570,73 +570,3 @@ def get_schedule_list_coefficients(filenameSceduleDataBase) -> dict[str, float]:
     #     data[sheet.cell(row=startingPointRow, column=startingPointColumn+i).value] = sheet.cell(row=startingPointRow+1, column=startingPointColumn+i).value
     #     i += 1
     return data
-
-#-----TESTS-----
-def check_output_and_update_schedule(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"):#TEST FUNCTION!!!
-    lengthOfPool = output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimetable, searchMode)  # "fast", "part", "full"
-    while True:
-        numChoosingTimetable = input("\nEnter number of choosing schedule: ")
-        try:
-            numChoosingTimetable = int(numChoosingTimetable)
-        except:
-            print(ERROR_STR_HEAD + " TYPE! (check_output_and_update_schedule)\n\t\tPlease, enter integer value.")
-        else:
-            if ((numChoosingTimetable < 1) or (numChoosingTimetable > lengthOfPool)):
-                print(f"{ERROR_STR_HEAD} VALUE! (check_output_and_update_schedule)\n\t\tPlease, enter value from 1 to {lengthOfPool}.")
-            else:
-                break
-    update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, numChoosingTimetable)
-
-def check_get_list_DB(filenameSceduleDataBase, numOfSelectedSchedule=-1):
-    schedule = get_schedule_list_data_base(filenameSceduleDataBase, numOfSelectedSchedule)
-    if schedule != None:
-        print("\n\t\t\tGet list DB:")
-        print("\tThe last schedule in data base:\n")
-        for i in range(len(schedule.EmployeeCards)):
-            print(schedule.EmployeeCards[i].Name, schedule.EmployeeCards[i].IsElder, schedule.EmployeeCards[i].Shifts)
-    else:
-        print(ERROR_STR_HEAD + "! (check_get_schdedule)\n\t\tEmpty data base!!!")
-    print("")
-
-def check_get_list_staff(filenameSceduleDataBase):
-    #1 - NAME/IS_ELDER; 2 - NAME/NUM_OF_TRUCK; 3 - NAME/NUM_OF_HALL; 4 - NAME/PREFER_NUM_OF_HALL; 5 - NAME/UNDESIRABLE_DAYS.
-    listOfLabels = [
-        "1 - NAME/IS_ELDER",
-        "2 - NAME/NUM_OF_TRUCK",
-        "3 - NAME/NUM_OF_HALL",
-        "4 - NAME/PREFER_NUM_OF_HALL",
-        "5 - NAME/UNDESIRABLE_DAYS"
-    ]
-    maxIndex = 5
-    print("\n\t\t\tGet list STAFF:")
-    for i in range(1, maxIndex+1):
-        print(f"{listOfLabels[i-1]}:")
-        data = get_schedule_list_staff(filenameSceduleDataBase, i)
-        if i == 2:
-            print(f"\t{data.Trucks}\n")
-        else:
-            print(f"\t{data}\n")
-    return 1
-
-def check_get_list_coefficients(filenameSceduleDataBase):
-    print("\n\t\t\tGet list COEFFICIENTS:")
-    data = get_schedule_list_coefficients(localFilenameScheduleDataBase)
-    print("Коэффициенты: ", data)
-
-def check_full(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast"):
-    check_output_and_update_schedule(filenameSceduleDataBase, filenamePoolTimetable, searchMode) # "fast", "part", "full"
-    # update_schedule_data_base_staff(filenameSceduleDataBase)
-
-    # #---GET_BLOCK---
-    # check_get_list_DB(filenameSceduleDataBase)
-    # check_get_list_staff(filenameSceduleDataBase)
-    # check_get_list_coefficients(filenameSceduleDataBase)
-
-
-if __name__ == "__main__":
-    localFilenameScheduleDataBase = "../" + FILENAME_SCHEDULE_DATA_BASE
-    localFilenamePoolTimetable = "../" + FILENAME_POOL_TIMETABLE
-    check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
-
-    # init_schedule_data_base(localFilenameScheduleDataBase)
-    # os.system('start EXCEL.exe ' + localFilenameScheduleDataBase)
