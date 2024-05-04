@@ -232,6 +232,11 @@ def init_schedule_data_base(filenameSceduleDataBase):
     print(f"\n\tFile '{filenameSceduleDataBase}' was created!")
     return 1
 
+def get_truck_distribution_data_base(filenameScheduleDataBase: str) -> TruckDistributionType:
+    truck = get_schedule_list_staff(filenameScheduleDataBase, 2)
+    shift = get_schedule_list_staff(filenameScheduleDataBase, 3)
+    return {name: TruckElem(truck[name], shift[name]) for name in truck.keys()}
+
 def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast", currentDay: datetime.date = datetime.date.today()):# "fast", "part", "full"
     #Init DB's FILE
     init_schedule_data_base(filenameSceduleDataBase)
@@ -248,9 +253,7 @@ def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimeta
     sparks = SparksScheduleSearch()
     _prevSchedule = get_schedule_list_data_base(filenameSceduleDataBase)
     if _prevSchedule != None:
-        truck = get_schedule_list_staff(filenameSceduleDataBase, 2)
-        shift = get_schedule_list_staff(filenameSceduleDataBase, 3)
-        _prevSchedule.Trucks = {name: TruckElem(truck[name], shift[name]) for name in truck.keys()}
+        _prevSchedule.Trucks = get_truck_distribution_data_base(filenameSceduleDataBase)
     coefs = get_schedule_list_coefficients(filenameSceduleDataBase)
     timeTable = sparks.search(eldermen=elders,
                               ghostmen=ghosts,
@@ -379,17 +382,20 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
     sheet = wbSceduleDataBase.worksheets[1]
     sparks = SparksScheduleSearch()
     data = WeekScheduleExcelType()
-    poolTable.Trucks = get_schedule_list_staff(filenameSceduleDataBase, 2).Trucks
+    poolTable.Trucks = get_truck_distribution_data_base(filenameSceduleDataBase)
     data.Trucks = sparks.calcNewTrucks(poolTable)
     startingPointColumn = STARTING_POINT_SCHEDULE_DATA_BASE["List DB"]["column"]
     startingPointRow = STARTING_POINT_SCHEDULE_DATA_BASE["List DB"]["row"]
     stepToTruck = 2
+    stepToShift = 3
     j = 0
     while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
         if data.Trucks[sheet.cell(row=startingPointRow + j, column=startingPointColumn).value] == None:
             sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = 0
+            sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToShift).value = 0
         else:
-            sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = data.Trucks[sheet.cell(row=startingPointRow + j, column=startingPointColumn).value]
+            sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = data.Trucks[sheet.cell(row=startingPointRow + j, column=startingPointColumn).value].TruckCount
+            sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToShift).value = data.Trucks[sheet.cell(row=startingPointRow + j, column=startingPointColumn).value].ShiftCount
         j += 1
 
     #Save DB's file

@@ -15,7 +15,8 @@ class SparksScheduleSearch:
     def calcNewTrucks(self, schedule: WeekScheduleExcelType) -> TruckDistributionType:
         newTrucks = schedule.Trucks
         for card in schedule.EmployeeCards:
-            newTrucks[card.Name] += card.truckCount()
+            newTrucks[card.Name].TruckCount += card.truckCount()
+            newTrucks[card.Name].ShiftCount += card.shiftCount()
         return newTrucks
 
     def search(self,

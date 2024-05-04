@@ -19,12 +19,26 @@ class EmployeeCard:
     def truckCount(self) -> int:
         return len(list(filter(lambda x: x[2] == 'Truck', self.Shifts)))
 
+    def shiftCount(self) -> float:
+        return sum(x[1] for x in self.Shifts)
+
 """ Формат выгрузки в эксель модуль. Один ExcelType - это одно расписание """
 
 class TruckElem:
-    def __init__(self, trucksCount=0, shiftsCount=0):
-        self.Trucks = trucksCount
-        self.Shifts = shiftsCount
+    def __init__(self, trucksCount: int = 0, shiftsCount: float = 0):
+        self.TruckCount = trucksCount
+        self.ShiftCount = shiftsCount
+
+    "Значение загруженности"
+    def loadValue(self) -> float:
+        return float(self.TruckCount) / self.ShiftCount if self.ShiftCount > 0.0 else 0.0
+
+    def incTruck(self):
+        self.TruckCount += 1
+        self.ShiftCount += 1
+
+    def incShift(self):
+        self.ShiftCount += 1
 
 # employee name -> truck count
 TruckDistributionType = dict[str, TruckElem]
