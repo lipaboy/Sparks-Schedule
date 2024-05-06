@@ -22,7 +22,18 @@ PROGRESS_BAR_MAX = 100
 SPEED_DELAY = 0.01
 MIN_DELAY = 0.1
 MAX_DELAY = 1
-
+COLOR_PALETTE = {
+    #Yellow BLOCK
+    # "BACKGROUND": "#F4D03F",
+    # "TEXT": "#000000",
+    # "HEAD": "#DC7633",
+    # "UNIT": "#F5B041"
+    #Blue, green, pink BLOCK
+    "BACKGROUND": "#514ED9",
+    "TEXT": "#008209",
+    "HEAD": "#CE0071",
+    "UNIT": "#E73A98"
+}
 mutex = QMutex()
 
 def openExcelDocumentProcess(excelFileName: str):
@@ -97,20 +108,11 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Генератор расписаний")
         self.setMinimumSize(WINDOW_SIZE_WIDTH, WINDOW_SIZE_HEIGHT)
-        self.setStyleSheet('''
-            QMainWindow{
-                background-color: #F4D03F;
-            }
-            QSlider{
-                background-color: #F5B041;
-            }
-            QPushButton{
-                padding: 10px;
-            }
-            QLineEdit{
-                padding: 10px;
-            }
-        ''')
+        self.setStyleSheet(
+            "QMainWindow{background-color: " + COLOR_PALETTE["BACKGROUND"] + "};"
+            "QPushButton{padding: 10px;}"
+            "QLineEdit{padding: 10px;}"
+        )
 
         self.threads = {}
         self.localFilenameScheduleDataBase = "../" + ExcelCore.FILENAME_SCHEDULE_DATA_BASE
@@ -129,26 +131,41 @@ class MainWindow(QMainWindow):
         self.create_Bottom_widget()
 
         self.widgetHead = QWidget()
-        self.widgetHead.setLayout(self.layoutHead)
-        self.widgetHead.setFixedHeight(int(self.window().height() / 5))
-        self.widgetHead.setStyleSheet('''
-            background-color: #DC7633;
+        self.widgetHead.setStyleSheet(f'''
+            background-color: {COLOR_PALETTE["HEAD"]};
+            color: {COLOR_PALETTE["TEXT"]};
             border-radius: 10px;
         ''')
+        self.widgetHead.setFixedHeight(int(self.window().height() / 5))
+        self.widgetHead.setLayout(self.layoutHead)
+
         self.widgetTop = QWidget()
+        self.widgetTop.setStyleSheet(f'''
+            color: {COLOR_PALETTE["TEXT"]};
+        ''')
         self.widgetTop.setLayout(self.layoutTop)
+
         self.widgetMiddleFirst = QWidget()
-        self.widgetMiddleFirst.setLayout(self.layoutMiddleFirst)
+        self.widgetMiddleFirst.setStyleSheet(f'''
+            color: {COLOR_PALETTE["TEXT"]};
+        ''')
         self.widgetMiddleFirst.setFixedHeight(int(self.window().height() / 4))
+        self.widgetMiddleFirst.setLayout(self.layoutMiddleFirst)
         self.widgetMiddleFirst.hide()
+
         self.widgetMiddleSecond = QWidget()
+        self.widgetMiddleSecond.setStyleSheet(f'''
+            color: {COLOR_PALETTE["TEXT"]};
+        ''')
         self.widgetMiddleSecond.setLayout(self.layoutMiddleSecond)
         self.widgetMiddleSecond.hide()
+
         self.widgetBottom = QWidget()
+        self.widgetBottom.setStyleSheet(f'''
+            color: {COLOR_PALETTE["TEXT"]};
+        ''')
         self.widgetBottom.setLayout(self.layoutBottom)
         self.widgetBottom.hide()
-
-
 
         mainLayout = QGridLayout()
         mainLayout.addWidget(self.widgetHead, 0, 0)
@@ -182,12 +199,12 @@ class MainWindow(QMainWindow):
         wLabelCalendar.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
 
         self.wCalendar = QCalendarWidget()
+        self.wCalendar.setStyleSheet(f'''
+            background-color: {COLOR_PALETTE["UNIT"]};
+        ''')
         font = self.wCalendar.font()
         font.setPointSize(TEXT_SIZE_MAIN)
         self.wCalendar.setFont(font)
-        self.wCalendar.setStyleSheet('''
-            background-color: #F5B041;
-        ''')
 
         self.wLabelSlider = QLabel()
         font = self.wLabelSlider.font()
@@ -196,6 +213,9 @@ class MainWindow(QMainWindow):
         self.wLabelSlider.setFont(font)
         self.wLabelSlider.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
         self.wSliderMode = QSlider()
+        self.wSliderMode.setStyleSheet(f'''
+            background-color: {COLOR_PALETTE["UNIT"]};
+        ''')
         self.wSliderMode.setOrientation(Qt.Orientation.Horizontal)  # Горизонтальный, по стандарту вертикальный
         self.wSliderMode.setRange(0, 2)
         self.wSliderMode.setValue(0)
