@@ -1,7 +1,7 @@
 import copy
 
 from search.Schedule import Schedule
-from search.WeekScheduleExcelType import WeekScheduleExcelType, EmployeeCard, TruckDistributionType
+from search.WeekScheduleExcelType import WeekScheduleExcelType, EmployeeCard, TruckDistributionType, TruckElem
 
 
 class EmployeeFavor:
@@ -45,7 +45,7 @@ class EmployeeFavor:
 
         " Распределение тачек "
         self.truckDistribution = {
-            name: 0 for name in (list(self.elderNames.keys()) + list(self.ghostNames.keys()))
+            name: TruckElem(0, 0) for name in (list(self.elderNames.keys()) + list(self.ghostNames.keys()))
         }
 
         # дни, в которых есть нецелые смены
@@ -122,19 +122,26 @@ class EmployeeFavor:
         else:
             return ''
 
+    def __getWorkerNamesAtDay(self,
+                             schedule: Schedule,
+                             day: int):
+
+        elderId, ghostIdList = schedule.getWorkersAtDay(day)
+        elder = self._elderNamesById[elderId]
+        return [elder] + [self._ghostNamesById[w] for w in ghostIdList]
+
     def __parseWhoUnderTruck(self,
                              schedule: Schedule,
-                             trucks: TruckDistributionType, day: int) -> str:
+                             trucks: TruckDistributionType,
+                             day: int) -> str:
         """ Правило: ставим того за тачку, кто меньше всего за ней стоял
             Нельзя ставить за тачку того, кто находится на полусмене (С2)
         """
-        elderId, ghostIdList = schedule.getWorkersAtDay(day)
-        elder = self._elderNamesById[elderId]
-        pretenderNames = [elder] + [self._ghostNamesById[w] for w in ghostIdList]
+        pretenderNames = self.__getWorkerNamesAtDay(schedule, day)
         halfEmployee = self.__getHalfShiftEmployee(schedule, day)
         if halfEmployee != '':
             pretenderNames.remove(halfEmployee)
-        worker = min([(n, trucks[n]) for n in pretenderNames], key=lambda x: x[1])
+        worker = min([(name, trucks[name]) for name in pretenderNames], key=lambda x: x[1].loadValue())
         return worker[0]
 
     def __getNameForTruck(self, name, weekTrucks, day):
@@ -149,7 +156,11 @@ class EmployeeFavor:
             name = self.__parseWhoUnderTruck(schedule, trucks, day)
             weekTrucks.append(name)
             " Увеличиваем количество тачек для сотрудника на 1 с каждым днём "
-            trucks[name] += 1
+            trucks[name].incTruck()
+            workerNames = self.__getWorkerNamesAtDay(schedule, day)
+            for w in workerNames:
+                if name != w:
+                    trucks[w].incShift()
 
         elderCards = {
             id: EmployeeCard(name, True, []) for name, id in self.elderNames.items()

@@ -282,6 +282,11 @@ def init_schedule_data_base(filenameSceduleDataBase):
     print(f"\n\tFile '{filenameSceduleDataBase}' was created!")
     return 1
 
+def get_truck_distribution_data_base(filenameScheduleDataBase: str) -> TruckDistributionType:
+    truck = get_schedule_list_staff(filenameScheduleDataBase, 2)
+    shift = get_schedule_list_staff(filenameScheduleDataBase, 3)
+    return {name: TruckElem(truck[name], shift[name]) for name in truck.keys()}
+
 def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast", currentDay: datetime.date = datetime.date.today()):# "fast", "part", "full"
     #Init DB's FILE
     init_schedule_data_base(filenameSceduleDataBase)
@@ -450,12 +455,15 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
     startingPointColumn = STARTING_POINT_SCHEDULE_DATA_BASE["List DB"]["column"]
     startingPointRow = STARTING_POINT_SCHEDULE_DATA_BASE["List DB"]["row"]
     stepToTruck = 2
+    stepToShift = 3
     j = 0
     while sheetDB.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
         if data.Trucks[sheetDB.cell(row=startingPointRow + j, column=startingPointColumn).value] == None:
             sheetDB.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = 0
+            sheetDB.cell(row=startingPointRow + j, column=startingPointColumn + stepToShift).value = 0
         else:
-            sheetDB.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = data.Trucks[sheetDB.cell(row=startingPointRow + j, column=startingPointColumn).value]
+            sheetDB.cell(row=startingPointRow + j, column=startingPointColumn + stepToTruck).value = data.Trucks[sheetDB.cell(row=startingPointRow + j, column=startingPointColumn).value].TruckCount
+            sheetDB.cell(row=startingPointRow + j, column=startingPointColumn + stepToShift).value = data.Trucks[sheetDB.cell(row=startingPointRow + j, column=startingPointColumn).value].ShiftCount
         j += 1
 
     #Save DB's file
@@ -529,9 +537,7 @@ def get_schedule_list_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-
             print(ERROR_STR_HEAD + "! (get_schedule_list_data_base)\n\t\tEmpty data base!!!")  # it gives the last schedule in DB
         else:
             print(ERROR_STR_HEAD + "! (get_schedule_list_data_base)\n\t\tOut of range!!!") #it gives the last schedule in DB
-        outputEmptySchedule = WeekScheduleExcelType()
-        return outputEmptySchedule
-        # return None
+        return None
     #Init tables parameters
     tableWidth = 1 + 7 + SPACE_BETWEEN_TABLES  # +1 - begin from 1; 7 - week length; +1 - space between tables
     startingPointColumn = STARTING_POINT_SCHEDULE_DATA_BASE["List DB"]["column"] + ((selectedNumber-1) * tableWidth)
@@ -560,7 +566,7 @@ def get_schedule_list_data_base(filenameSceduleDataBase, numOfSelectedSchedule=-
             outputSchedule.EmployeeCards.append(EmployeeCard(name=bufferName, isElder=bufferIsElder, shifts=bufferShifts))
     except:
         print(f"{ERROR_STR_HEAD} (get_schedule_list_data_base)! Empty cell. Upper's error!")
-        return 0
+        return None
     else:
         return outputSchedule
 

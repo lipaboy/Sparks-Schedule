@@ -7,4 +7,3 @@ if __name__ == "__main__":
     localFilenamePoolTimetable = "../" + eCore.FILENAME_POOL_TIMETABLE
 
     eCheck.check_full(localFilenameScheduleDataBase, localFilenamePoolTimetable, "fast")
-    # print(eCore.get_truck_distribution_data_base(localFilenameScheduleDataBase))

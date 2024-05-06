@@ -7,9 +7,9 @@ from utility.DocumentControl import openExcelDocumentProcess, closeExcelDocument
 ERROR_STR_HEAD = "\n\t**ERROR in excel.ExcelChecks"#! (numOfFunction)\n\t\t
 
 def check_output_and_update_schedule(filenameScheduleDataBase, filenamePoolTimetable, searchMode="fast"):#TEST FUNCTION!!!
-    # closeExcelDocumentProcess(filenamePoolTimetable)
-    # lengthOfPool = output_pool_of_schedule_to_excel(filenameScheduleDataBase, filenamePoolTimetable, searchMode)  # "fast", "part", "full"
-    # openExcelDocumentProcess(filenamePoolTimetable)
+    closeExcelDocumentProcess(filenamePoolTimetable)
+    lengthOfPool = output_pool_of_schedule_to_excel(filenameScheduleDataBase, filenamePoolTimetable, searchMode)  # "fast", "part", "full"
+    openExcelDocumentProcess(filenamePoolTimetable)
     lengthOfPool = 12
     while True:
         numChoosingTimetable = input("\nEnter number of choosing schedule: ")
@@ -53,16 +53,12 @@ def check_get_list_staff(filenameScheduleDataBase):
     for i in range(1, maxIndex+1):
         print(f"{listOfLabels[i-1]}:")
         data = get_schedule_list_staff(filenameScheduleDataBase, i)
-        if i == 2:
-            print(f"\t{data.Trucks}")
-        else:
-            print(f"\t{data}")
-    return 1
+        print(f"\t{data}")
 
 def check_get_list_coefficients(filenameScheduleDataBase):
     print("\n\t\t\tGet list COEFFICIENTS:")
     data = get_schedule_list_coefficients(filenameScheduleDataBase)
-    print("Коэффициенты: ", data)
+    print("Coefficients: ", data)
 
 def check_get_block(filenameScheduleDataBase):
     check_get_list_DB(filenameScheduleDataBase)
