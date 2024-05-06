@@ -103,12 +103,12 @@ def get_dated_week(mode=0, currentDay: datetime.date = datetime.date.today()): #
 
 def init_schedule_data_base(filenameSceduleDataBase):
     # Checking for the existence of DB's file
-    # try:
-    #     openpyxl.load_workbook(filename = filenameSceduleDataBase)
-    # except:
-    #     pass
-    # else:
-    #     return 0
+    try:
+        openpyxl.load_workbook(filename = filenameSceduleDataBase)
+    except:
+        pass
+    else:
+        return 0
 
                     #Init List DB
     wbSceduleDataBase = openpyxl.Workbook()
@@ -585,9 +585,9 @@ def get_schedule_list_staff(filenameSceduleDataBase, numOfColumn = 1): #1 - NAME
         j = 0
         while sheet.cell(row=startingPointRow + j, column=startingPointColumn).value != None:
             if sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToSelectColumn).value == None:
-                data.Trucks[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = 0
+                data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = 0
             else:
-                data.Trucks[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToSelectColumn).value
+                data[str(sheet.cell(row=startingPointRow + j, column=startingPointColumn).value)] = sheet.cell(row=startingPointRow + j, column=startingPointColumn + stepToSelectColumn).value
             j += 1
         if j == 0:
             print(ERROR_STR_HEAD + "! (get_schedule_list_staff(numOfColumn = 2) Empty data base of trucks!")
@@ -619,8 +619,6 @@ def get_schedule_list_staff(filenameSceduleDataBase, numOfColumn = 1): #1 - NAME
 def get_truck_distribution_data_base(filenameScheduleDataBase: str) -> TruckDistributionType:
     truck = get_schedule_list_staff(filenameScheduleDataBase, 2)
     shift = get_schedule_list_staff(filenameScheduleDataBase, 3)
-    print(truck)
-    print(shift)
     return {name: TruckElem(truck[name], shift[name]) for name in truck.keys()}
 
 def get_schedule_list_coefficients(filenameSceduleDataBase) -> dict[str, float]:
