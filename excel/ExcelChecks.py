@@ -1,12 +1,16 @@
 from excel.ExcelCore import (
-    output_pool_of_schedule_to_excel, update_schedule_data_base_staff,
+    output_pool_of_schedule_to_excel, update_schedule_data_base,
     get_schedule_list_data_base, get_schedule_list_staff, get_schedule_list_coefficients
 )
+from utility.DocumentControl import openExcelDocumentProcess, closeExcelDocumentProcess
 
 ERROR_STR_HEAD = "\n\t**ERROR in excel.ExcelChecks"#! (numOfFunction)\n\t\t
 
 def check_output_and_update_schedule(filenameScheduleDataBase, filenamePoolTimetable, searchMode="fast"):#TEST FUNCTION!!!
-    lengthOfPool = output_pool_of_schedule_to_excel(filenameScheduleDataBase, filenamePoolTimetable, searchMode)  # "fast", "part", "full"
+    # closeExcelDocumentProcess(filenamePoolTimetable)
+    # lengthOfPool = output_pool_of_schedule_to_excel(filenameScheduleDataBase, filenamePoolTimetable, searchMode)  # "fast", "part", "full"
+    # openExcelDocumentProcess(filenamePoolTimetable)
+    lengthOfPool = 12
     while True:
         numChoosingTimetable = input("\nEnter number of choosing schedule: ")
         try:
@@ -18,11 +22,14 @@ def check_output_and_update_schedule(filenameScheduleDataBase, filenamePoolTimet
                 print(f"{ERROR_STR_HEAD} VALUE! (check_output_and_update_schedule)\n\t\tPlease, enter value from 1 to {lengthOfPool}.")
             else:
                 break
-    update_schedule_data_base(filenameScheduleDataBase, filenamePoolTimetable, numChoosingTimetable)
 
+    closeExcelDocumentProcess(filenameScheduleDataBase)
+    update_schedule_data_base(filenameScheduleDataBase, filenamePoolTimetable, numChoosingTimetable)
+    openExcelDocumentProcess(filenameScheduleDataBase)
+
+#BLOCK CHECK_GET
 def check_get_list_DB(filenameScheduleDataBase, numOfSelectedSchedule=-1):
     schedule = get_schedule_list_data_base(filenameScheduleDataBase, numOfSelectedSchedule)
-    print(schedule)
     if schedule != None:
         print("\n\t\t\tGet list DB:")
         print("\tThe last schedule in data base:")
@@ -61,9 +68,12 @@ def check_get_block(filenameScheduleDataBase):
     check_get_list_DB(filenameScheduleDataBase)
     check_get_list_staff(filenameScheduleDataBase)
     check_get_list_coefficients(filenameScheduleDataBase)
-def check_full(filenameScheduleDataBase, filenamePoolTimetable, searchMode="fast"):
-    # check_output_and_update_schedule(filenameScheduleDataBase, filenamePoolTimetable, searchMode) # "fast", "part", "full"
-    # update_schedule_data_base_staff(filenameScheduleDataBase)
 
-    # #---GET_BLOCK---
+#FULL CHECKs
+def check_full(filenameScheduleDataBase, filenamePoolTimetable, searchMode="fast"):
+
+    #MAIN CHECKS
+    check_output_and_update_schedule(filenameScheduleDataBase, filenamePoolTimetable, searchMode) # "fast", "part", "full"
+
+    #---GET_BLOCK---
     check_get_block(filenameScheduleDataBase)
