@@ -282,11 +282,6 @@ def init_schedule_data_base(filenameSceduleDataBase):
     print(f"\n\tFile '{filenameSceduleDataBase}' was created!")
     return 1
 
-def get_truck_distribution_data_base(filenameScheduleDataBase: str) -> TruckDistributionType:
-    truck = get_schedule_list_staff(filenameScheduleDataBase, 2)
-    shift = get_schedule_list_staff(filenameScheduleDataBase, 3)
-    return {name: TruckElem(truck[name], shift[name]) for name in truck.keys()}
-
 def output_pool_of_schedule_to_excel(filenameSceduleDataBase, filenamePoolTimetable, searchMode="fast", currentDay: datetime.date = datetime.date.today()):# "fast", "part", "full"
     #Init DB's FILE
     init_schedule_data_base(filenameSceduleDataBase)
