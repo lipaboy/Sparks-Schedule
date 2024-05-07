@@ -413,35 +413,38 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
         sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).border)
         sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).fill)
     poolTable = WeekScheduleExcelType() #For calcNewTrucks()
-    for i in range(1, tableHeight-SPACE_BETWEEN_TABLES):#Other
-        bufferName = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn).value#For calcNewTrucks()
-        bufferIsElder = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn).font.b#For calcNewTrucks()
-        bufferShifts = list[ShiftType]()#For calcNewTrucks()
-        for j in range(tableWidth-SPACE_BETWEEN_TABLES):
-            if poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value != CHAR_CROSS:#For calcNewTrucks()
-                if poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_TRUCK:#For calcNewTrucks()
-                    bufferShifts.append((j, 1.0, "Truck"))#For calcNewTrucks()
-                elif poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_HALL:#For calcNewTrucks()
-                    bufferShifts.append((j, 1.0, "Hall"))#For calcNewTrucks()
-                elif poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_HALF_HALL:#For calcNewTrucks()
-                    bufferShifts.append((j, 0.5, "Hall"))#For calcNewTrucks()
-            sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).value = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).value
-            sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).font)
-            sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
-            sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
-            sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
-            sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).value = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).value
-            sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).font)
-            sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
-            sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
-            sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
-        poolTable.EmployeeCards.append(EmployeeCard(name=bufferName, isElder=bufferIsElder, shifts=bufferShifts))#For calcNewTrucks()
-    sheetDB.cell(row=1, column=1).value = sheetDB.cell(row=1, column=1).value + 1  # number of week schedule + 1 after added
-    sheetDB.cell(row=startingPointRow, column=startingPointColumn).value = "№ " + str(sheetDB.cell(row=1, column=1).value)
-    sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn).value = sheetDB.cell(row=startingPointRow, column=startingPointColumn).value
-    sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn).border = openpyxl.styles.Border(top= THICK_BORDER)
-    #Update List STAFF
-    #Fill Truck
+    try:
+        for i in range(1, tableHeight-SPACE_BETWEEN_TABLES):#Other
+            bufferName = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn).value#For calcNewTrucks()
+            bufferIsElder = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn).font.b#For calcNewTrucks()
+            bufferShifts = list[ShiftType]()#For calcNewTrucks()
+            for j in range(tableWidth-SPACE_BETWEEN_TABLES):
+                if poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value != CHAR_CROSS:#For calcNewTrucks()
+                    if poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_TRUCK:#For calcNewTrucks()
+                        bufferShifts.append((j, 1.0, "Truck"))#For calcNewTrucks()
+                    elif poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_HALL:#For calcNewTrucks()
+                        bufferShifts.append((j, 1.0, "Hall"))#For calcNewTrucks()
+                    elif poolSheet.cell(row=poolPointRow+i, column=poolPointColumn+j).value.upper() == CHAR_HALF_HALL:#For calcNewTrucks()
+                        bufferShifts.append((j, 0.5, "Hall"))#For calcNewTrucks()
+                sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).value = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).value
+                sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).font)
+                sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
+                sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
+                sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
+                sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).value = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).value
+                sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).font)
+                sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
+                sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
+                sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
+            poolTable.EmployeeCards.append(EmployeeCard(name=bufferName, isElder=bufferIsElder, shifts=bufferShifts))#For calcNewTrucks()
+        sheetDB.cell(row=1, column=1).value = sheetDB.cell(row=1, column=1).value + 1  # number of week schedule + 1 after added
+        sheetDB.cell(row=startingPointRow, column=startingPointColumn).value = "№ " + str(sheetDB.cell(row=1, column=1).value)
+        sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn).value = sheetDB.cell(row=startingPointRow, column=startingPointColumn).value
+        sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn).border = openpyxl.styles.Border(top= THICK_BORDER)
+    except:
+        print(f"{ERROR_STR_HEAD} (update_schedule_data_base)! Empty cell!")
+        return 0
+    #Update List STAFF Fill Truck
     sheetDB = wbSceduleDataBase.worksheets[1]
     sparks = SparksScheduleSearch()
     data = WeekScheduleExcelType()
