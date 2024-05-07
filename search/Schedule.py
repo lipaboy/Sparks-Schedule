@@ -8,6 +8,7 @@ class Schedule:
         self.ghostPair = [(0, 0) for _ in range(pairDayStart, 7 + 1)]
         self.ghostPairAlgo = self.__nextGhostPair_vPart
         self.pairDayStart = pairDayStart
+        self.ghostCount = 5
 
     " Сначала старшие, потом духи "
     def getWorkersAtDay(self, day: int) -> tuple[int, list[int]]:
@@ -72,16 +73,16 @@ class Schedule:
         return self.ghostPairAlgo()
 
     def nextGhostOneTime(self):
-        return nextOneTimeScheduleOfGhostman(self.ghostOneTime, 5, 3)
-
-    def __nextGhostPair_vPart(self):
-        return nextPairSchedule(self.ghostPair, 5, 4)
+        return nextOneTimeScheduleOfGhostman(self.ghostOneTime, self.ghostCount, 3)
 
     def __nextGhostPair_vFast(self):
-        return nextPairSchedule_vFast(self.ghostPair, 5, 4)
+        return nextPairSchedule_vFast(self.ghostPair, self.ghostCount, 4)
+
+    def __nextGhostPair_vPart(self):
+        return nextPairSchedule(self.ghostPair, self.ghostCount, 4)
 
     def __nextGhostPair_vFull(self):
-        return self.__nextPairSchedule_v2(5, 4, 5)
+        return self.__nextPairSchedule_v2(self.ghostCount, 4, 5)
 
     def __nextPairSchedule_v2(self,
                               ghostCount: int,
@@ -116,7 +117,14 @@ class Schedule:
     def calcGhostTraverseLen(self):
         self.__setBase()
         traversalLen = 0
-        while self.ghostTraversalGen():
+        for _ in self.ghostTraversalGen():
+            traversalLen += 1
+        return traversalLen
+
+    def calcElderTraverseLen(self):
+        self.__setBase()
+        traversalLen = 0
+        for _ in self.elderTraversalGen():
             traversalLen += 1
         return traversalLen
 

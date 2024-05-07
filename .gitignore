@@ -6,3 +6,4 @@ venv
 **/*.xlsx
 **/*.jpg
 **/*.log
+**/excel/Old excel files
