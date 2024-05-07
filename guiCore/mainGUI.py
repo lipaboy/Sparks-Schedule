@@ -1,10 +1,9 @@
 import sys
-import os
-import psutil
 import time
 import datetime
-import excel.mainExcel as ExcelCore
+import excel.ExcelCore as eCore
 import search.SparksScheduleSearch as SearchCore
+from utility.DocumentControl import openExcelDocumentProcess, closeExcelDocumentProcess
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow,
     QGridLayout, QVBoxLayout, QWidget,
@@ -24,32 +23,18 @@ MIN_DELAY = 0.1
 MAX_DELAY = 1
 COLOR_PALETTE = {
     #Yellow BLOCK
-    # "BACKGROUND": "#F4D03F",
-    # "TEXT": "#000000",
-    # "HEAD": "#DC7633",
-    # "UNIT": "#F5B041"
+    "BACKGROUND": "#F4D03F",
+    "TEXT": "#000000",
+    "HEAD": "#DC7633",
+    "UNIT": "#F5B041"
     #Blue, green, pink BLOCK
-    "BACKGROUND": "#514ED9",
-    "TEXT": "#008209",
-    "HEAD": "#CE0071",
-    "UNIT": "#E73A98"
+    # "BACKGROUND": "#514ED9",
+    # "TEXT": "#008209",
+    # "HEAD": "#CE0071",
+    # "UNIT": "#E73A98"
 }
+
 mutex = QMutex()
-
-def openExcelDocumentProcess(excelFileName: str):
-    os.system('start EXCEL.exe ' + excelFileName)
-
-def closeExcelDocumentProcess(excelFileName: str):
-    processList = psutil.process_iter()
-    for proc in processList:
-        try:
-            if 'excel' in proc.name().lower():
-                # print(proc.name(), proc.pid, proc.cmdline(), proc.open_files())
-                if any(excelFileName in path.path for path in proc.open_files()):
-                    # print("close " + proc.name())
-                    proc.kill()
-        except psutil.AccessDenied:
-            continue
 
 def excepthook(cls, exception, traceback):
     print('calling excepthook...')
@@ -65,8 +50,8 @@ class TaskThread(QThread):
 
     def __init__(self, task_id = 1, mode = "fast", day = datetime.date.today()):
         super().__init__()
-        self.localFilenameScheduleDataBase = "../" + ExcelCore.FILENAME_SCHEDULE_DATA_BASE
-        self.localFilenamePoolTimetable = "../" + ExcelCore.FILENAME_POOL_TIMETABLE
+        self.localFilenameScheduleDataBase = "../" + eCore.FILENAME_SCHEDULE_DATA_BASE
+        self.localFilenamePoolTimetable = "../" + eCore.FILENAME_POOL_TIMETABLE
         self.task_id = task_id
         self.mode = mode
         self.day = day
@@ -92,7 +77,7 @@ class TaskThread(QThread):
             self.finished_text.emit(f"Task {self.task_id} *** END!")
         elif self.task_id == 2:
             self.started.emit(f"Task {self.task_id} *** START!")
-            lengthOfPool = ExcelCore.output_pool_of_schedule_to_excel(self.localFilenameScheduleDataBase, self.localFilenamePoolTimetable, self.mode, self.day)
+            lengthOfPool = eCore.output_pool_of_schedule_to_excel(self.localFilenameScheduleDataBase, self.localFilenamePoolTimetable, self.mode, self.day)
             mutex.lock()
             #TODO Race condition REWORK
             time.sleep(MAX_DELAY * self.modeSpeed)
@@ -115,8 +100,8 @@ class MainWindow(QMainWindow):
         )
 
         self.threads = {}
-        self.localFilenameScheduleDataBase = "../" + ExcelCore.FILENAME_SCHEDULE_DATA_BASE
-        self.localFilenamePoolTimetable = "../" + ExcelCore.FILENAME_POOL_TIMETABLE
+        self.localFilenameScheduleDataBase = "../" + eCore.FILENAME_SCHEDULE_DATA_BASE
+        self.localFilenamePoolTimetable = "../" + eCore.FILENAME_POOL_TIMETABLE
         self.modeList = list(map(lambda x: x.upper(), SearchCore.MODE_LIST))
         self.labelImformList = [
             ["Идёт генерация расписаний...", "Генерация завершена!"],
@@ -357,9 +342,9 @@ class MainWindow(QMainWindow):
                     self.widgetMiddleFirst.hide()
                     self.widgetMiddleSecond.hide()
                     self.widgetBottom.show()
-                    closeExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
-                    closeExcelDocumentProcess(ExcelCore.FILENAME_SCHEDULE_DATA_BASE)
-                    errorFlag = ExcelCore.update_schedule_data_base(self.localFilenameScheduleDataBase,
+                    closeExcelDocumentProcess(eCore.FILENAME_POOL_TIMETABLE)
+                    closeExcelDocumentProcess(eCore.FILENAME_SCHEDULE_DATA_BASE)
+                    errorFlag = eCore.update_schedule_data_base(self.localFilenameScheduleDataBase,
                                                                     self.localFilenamePoolTimetable,
                                                                     numOfSelectSchedule)
                     if errorFlag:
@@ -411,7 +396,7 @@ class MainWindow(QMainWindow):
             self.wLineEdit.setVisible(True)
             self.wButtonSelect.setVisible(True)
             self.wButtonBack.setVisible(True)
-            closeExcelDocumentProcess(ExcelCore.FILENAME_POOL_TIMETABLE)
+            closeExcelDocumentProcess(eCore.FILENAME_POOL_TIMETABLE)
             openExcelDocumentProcess(self.localFilenamePoolTimetable)
             mutex.unlock()
 
