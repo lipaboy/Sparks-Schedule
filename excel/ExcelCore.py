@@ -204,27 +204,28 @@ def init_schedule_data_base(filenameSceduleDataBase):
     sheet.cell(row=rowCursor, column=columnCursor).border = openpyxl.styles.Border(left=THICK_BORDER, right=MEDIUM_BORDER, bottom=THICK_BORDER, top=MEDIUM_BORDER)
     sheet.cell(row=rowCursor, column=columnCursor+WEEK_LENGTH-1).border = openpyxl.styles.Border(left=MEDIUM_BORDER, right=THICK_BORDER, bottom=THICK_BORDER, top=MEDIUM_BORDER)
 
-                #Subtable CURRENT_WEEK
-    rowCursor = headStartingPointRow
-    columnCursor = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["column"]
-            #Head Subtable CURRENT_WEEK
-    sheet.merge_cells(start_row=rowCursor, start_column=columnCursor, end_row=rowCursor, end_column=columnCursor + WEEK_LENGTH)
-    formatting_cell(sheet, rowCursor, columnCursor, "Текущая неделя", FONT_SIZE, "Times New Roman", True, False, "center", "center")
-    sheet.cell(row=rowCursor, column=columnCursor).border = openpyxl.styles.Border(left=THICK_BORDER)
-    sheet.cell(row=rowCursor, column=columnCursor + WEEK_LENGTH).border = openpyxl.styles.Border(right=THICK_BORDER)
-        #Subhead days of week
-    rowCursor += 1
-    columnCursor = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["column"]
-    sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
-    formatting_cell(sheet, rowCursor, columnCursor, "", FONT_SIZE, "Times New Roman", True, False, "center", "center")
-    sheet.cell(row=rowCursor, column=columnCursor).border = openpyxl.styles.Border(right=MEDIUM_BORDER, bottom=THICK_BORDER, top=MEDIUM_BORDER)
-    columnCursor += 1
-    for i in range(WEEK_LENGTH):
-        sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor + i)].width = TABLE_0_COLUMN_WIDTH
-        formatting_cell(sheet, rowCursor, columnCursor + i, datedWeek[i], FONT_SIZE, "Times New Roman", True, False, "center", "center")
-        sheet.cell(row=rowCursor, column=columnCursor + i).border = openpyxl.styles.Border(right=MEDIUM_BORDER, bottom=THICK_BORDER, top=MEDIUM_BORDER)
-    sheet.cell(row=rowCursor, column=columnCursor-1).border = openpyxl.styles.Border(left=THICK_BORDER, right=MEDIUM_BORDER, bottom=THICK_BORDER, top=MEDIUM_BORDER)
-    sheet.cell(row=rowCursor, column=columnCursor+WEEK_LENGTH-1).border = openpyxl.styles.Border(left=MEDIUM_BORDER, right=THICK_BORDER, bottom=THICK_BORDER, top=MEDIUM_BORDER)
+    # For CURRENT_WEEK
+    #             #Subtable CURRENT_WEEK
+    # rowCursor = headStartingPointRow
+    # columnCursor = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["column"]
+    #         #Head Subtable CURRENT_WEEK
+    # sheet.merge_cells(start_row=rowCursor, start_column=columnCursor, end_row=rowCursor, end_column=columnCursor + WEEK_LENGTH)
+    # formatting_cell(sheet, rowCursor, columnCursor, "Текущая неделя", FONT_SIZE, "Times New Roman", True, False, "center", "center")
+    # sheet.cell(row=rowCursor, column=columnCursor).border = openpyxl.styles.Border(left=THICK_BORDER)
+    # sheet.cell(row=rowCursor, column=columnCursor + WEEK_LENGTH).border = openpyxl.styles.Border(right=THICK_BORDER)
+    #     #Subhead days of week
+    # rowCursor += 1
+    # columnCursor = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["column"]
+    # sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor)].width = TABLE_1_COLUMN_WIDTH
+    # formatting_cell(sheet, rowCursor, columnCursor, "", FONT_SIZE, "Times New Roman", True, False, "center", "center")
+    # sheet.cell(row=rowCursor, column=columnCursor).border = openpyxl.styles.Border(right=MEDIUM_BORDER, bottom=THICK_BORDER, top=MEDIUM_BORDER)
+    # columnCursor += 1
+    # for i in range(WEEK_LENGTH):
+    #     sheet.column_dimensions[openpyxl.utils.get_column_letter(columnCursor + i)].width = TABLE_0_COLUMN_WIDTH
+    #     formatting_cell(sheet, rowCursor, columnCursor + i, datedWeek[i], FONT_SIZE, "Times New Roman", True, False, "center", "center")
+    #     sheet.cell(row=rowCursor, column=columnCursor + i).border = openpyxl.styles.Border(right=MEDIUM_BORDER, bottom=THICK_BORDER, top=MEDIUM_BORDER)
+    # sheet.cell(row=rowCursor, column=columnCursor-1).border = openpyxl.styles.Border(left=THICK_BORDER, right=MEDIUM_BORDER, bottom=THICK_BORDER, top=MEDIUM_BORDER)
+    # sheet.cell(row=rowCursor, column=columnCursor+WEEK_LENGTH-1).border = openpyxl.styles.Border(left=MEDIUM_BORDER, right=THICK_BORDER, bottom=THICK_BORDER, top=MEDIUM_BORDER)
 
     # Creating border of empty cells
     rowCursor = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["STAFF_DATA"]["row"]
@@ -241,11 +242,12 @@ def init_schedule_data_base(filenameSceduleDataBase):
             columnCursor += 1
         sheet.cell(row=rowCursor + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER)
 
-        columnCursor = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["column"]
-        for i in range(STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["width"]):
-            sheet.cell(row=rowCursor + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, bottom=THIN_BORDER)
-            columnCursor += 1
-        sheet.cell(row=rowCursor + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER)
+        # For CURRENT_WEEK
+        # columnCursor = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["column"]
+        # for i in range(STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["width"]):
+        #     sheet.cell(row=rowCursor + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER, bottom=THIN_BORDER)
+        #     columnCursor += 1
+        # sheet.cell(row=rowCursor + j, column=columnCursor).border = openpyxl.styles.Border(left=THIN_BORDER)
 
                     #Init List COEFFICIENTS
     startingPointColumn = 1
@@ -379,7 +381,8 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
     #Init
     wbSceduleDataBase = openpyxl.load_workbook(filename = filenameSceduleDataBase)
     sheetDB = wbSceduleDataBase.worksheets[0]
-    sheetSTAFF = wbSceduleDataBase.worksheets[1]
+    # For CURRENT_WEEK
+    # sheetSTAFF = wbSceduleDataBase.worksheets[1]
     wbChooseTimetable = openpyxl.load_workbook(filename = filenamePoolTimetable)
     poolSheet = wbChooseTimetable.worksheets[0]
     #Calc of staff's size
@@ -393,8 +396,9 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
     tableHeight = 1 + staffLength + SPACE_BETWEEN_TABLES
     startingPointColumn = STARTING_POINT_SCHEDULE_DATA_BASE["List DB"]["column"] + (sheetDB.cell(row=1, column=1).value * tableWidth)
     startingPointRow = STARTING_POINT_SCHEDULE_DATA_BASE["List DB"]["row"]
-    sheetSTAFF_startingPointColumn = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["column"]
-    sheetSTAFF_startingPointRow = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["row"]
+    # For CURRENT_WEEK
+    # sheetSTAFF_startingPointColumn = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["column"]
+    # sheetSTAFF_startingPointRow = STARTING_POINT_SCHEDULE_DATA_BASE["List STAFF"]["CURRENT_WEEK"]["row"]
     poolPointColumn = STARTING_POINT_POOL_TIMETABLE["column"] + (((numChoosingTimetable-1) % NUMBER_OF_TABLES_IN_LINE) * tableWidth)
     poolPointRow = STARTING_POINT_POOL_TIMETABLE["row"] + (((numChoosingTimetable-1) // NUMBER_OF_TABLES_IN_LINE) * tableHeight)
     #Update List DB and List STAFF CURRENT_WEEK
@@ -405,13 +409,14 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
         sheetDB.cell(row=startingPointRow, column=startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).alignment)
         sheetDB.cell(row=startingPointRow, column=startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).border)
         sheetDB.cell(row=startingPointRow, column=startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).fill)
-    for j in range(tableWidth - SPACE_BETWEEN_TABLES):  # Head update STAFF CURRENT_WEEK
-        sheetSTAFF.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn + j)].width = TABLE_0_COLUMN_WIDTH
-        sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).value = poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).value
-        sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).font)
-        sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).alignment)
-        sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).border)
-        sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).fill)
+    # For CURRENT_WEEK
+    # for j in range(tableWidth - SPACE_BETWEEN_TABLES):  # Head update STAFF CURRENT_WEEK
+    #     sheetSTAFF.column_dimensions[openpyxl.utils.get_column_letter(startingPointColumn + j)].width = TABLE_0_COLUMN_WIDTH
+    #     sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).value = poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).value
+    #     sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).font)
+    #     sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).alignment)
+    #     sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).border)
+    #     sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow, column=poolPointColumn + j).fill)
     poolTable = WeekScheduleExcelType() #For calcNewTrucks()
     try:
         for i in range(1, tableHeight-SPACE_BETWEEN_TABLES):#Other
@@ -431,16 +436,18 @@ def update_schedule_data_base(filenameSceduleDataBase, filenamePoolTimetable, nu
                 sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
                 sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
                 sheetDB.cell(row=startingPointRow + i, column=startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
-                sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).value = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).value
-                sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).font)
-                sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
-                sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
-                sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
+                # For CURRENT_WEEK
+                # sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).value = poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).value
+                # sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).font = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).font)
+                # sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).alignment = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).alignment)
+                # sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).border = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).border)
+                # sheetSTAFF.cell(row=sheetSTAFF_startingPointRow + i, column=sheetSTAFF_startingPointColumn + j).fill = copy.copy(poolSheet.cell(row=poolPointRow + i, column=poolPointColumn + j).fill)
             poolTable.EmployeeCards.append(EmployeeCard(name=bufferName, isElder=bufferIsElder, shifts=bufferShifts))#For calcNewTrucks()
         sheetDB.cell(row=1, column=1).value = sheetDB.cell(row=1, column=1).value + 1  # number of week schedule + 1 after added
         sheetDB.cell(row=startingPointRow, column=startingPointColumn).value = "№ " + str(sheetDB.cell(row=1, column=1).value)
-        sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn).value = sheetDB.cell(row=startingPointRow, column=startingPointColumn).value
-        sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn).border = openpyxl.styles.Border(top= THICK_BORDER)
+        # For CURRENT_WEEK
+        # sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn).value = sheetDB.cell(row=startingPointRow, column=startingPointColumn).value
+        # sheetSTAFF.cell(row=sheetSTAFF_startingPointRow, column=sheetSTAFF_startingPointColumn).border = openpyxl.styles.Border(top= THICK_BORDER)
     except:
         print(f"{ERROR_STR_HEAD} (update_schedule_data_base)! Empty cell!")
         return 0
